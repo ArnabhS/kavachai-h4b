@@ -1,86 +1,83 @@
-'use client';
-import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
-import { ArrowUp } from "lucide-react";
-import HeroSection from "./HeroSection";
-import Navbar from "../common/Navbar";
-import Footer from "../common/Footer";
+import { VerticalTimeline, VerticalTimelineElement } from 'react-vertical-timeline-component';
+import 'react-vertical-timeline-component/style.min.css';
+import { ShieldAlert, CheckCircle, User } from "lucide-react";
 
 
+const steps = [
+  {
+    id: 1,
+    title: "Civic Auth Verification",
+    description:
+      "Verified white-hat hackers and security experts join our trusted network through Civic identity verification.",
+    icon: <User size={24} />,
+    bgColor: "var(--cyber-accent)",
+  },
+  {
+    id: 2,
+    title: "Agent AI Detection",
+    description:
+      "Our agentic AI continuously monitors Web3 protocols, analyzing smart contracts and detecting threats in real-time.",
+    icon: <ShieldAlert size={24} />,
+    bgColor: "var(--cyber-neon)",
+  },
+  {
+    id: 3,
+    title: "Human Approval",
+    description:
+      "Verified experts review AI findings, approve responses, and execute mitigation strategies for maximum accuracy.",
+    icon: <CheckCircle size={24} />,
+    bgColor: "var(--cyber-purple)",
+  },
+];
 
-export default function HomePage() {
-  const [showScrollTop, setShowScrollTop] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 400);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
+export default function TimelinePage() {
   return (
-    <div className="min-h -screen bg-cyber-dark text-white">
-      {/* Navigation */}
-      <div>
-        <Navbar />
-      </div>
-      
+    <div className="min-h-screen flex flex-col items-center px-4 py-12 sm:px-6 lg:px-8">
+      <h2 className="text-3xl font-bold glow-text text-center mb-2">How It Works</h2>
+      <p className="text-slate-400 text-center tracking-tight mb-12">A simple 3-step process that combines human expertise with AI precision</p>
 
-      {/* Main Content */}
-      <div className="py-4 mt-14">
-      <HeroSection />
-
-      {/* Tech Stack Section */}
-      <section className="py-16 bg-cyber-darker border-t border-cyber-accent/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center"
+      {/* <VerticalTimeline >
+        {steps.map((step) => (
+          <VerticalTimelineElement
+            key={step.id}
+            className="vertical-timeline-element--work "
+            contentStyle={{ background: '#FBD9ED', color: '#000' }}
+            contentArrowStyle={{ borderRight: `7px solid #FBD9ED` }}
+            date={`Step 0${step.id}`}
+            iconStyle={{ background: step.bgColor, color: '#fff' }}
+            icon={step.icon}
           >
-            <h3 className="text-2xl font-bold mb-8 text-gray-300">
-              Powered by cutting-edge technology
-            </h3>
-            <div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
-              {["Next.js", "OpenAI", "LangChain", "Civic", "Polygon", "Ethers.js"].map((tech) => (
-                <motion.div
-                  key={tech}
-                  whileHover={{ scale: 1.1, opacity: 1 }}
-                  className="text-lg font-medium text-gray-400 hover:text-cyber-accent transition-colors cursor-pointer"
-                >
-                  {tech}
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
-      </section>
-      </div>
+            <h3 className="text-lg font-semibold text-cyber-accent">{step.title}</h3>
+            <p className="text-slate-600 text-sm mt-2">{step.description}</p>
+          </VerticalTimelineElement>
+        ))}
+      </VerticalTimeline> */}
 
-      {/* Footer */}
-      <Footer />
+      <VerticalTimeline>
+        {steps.map((step) => (
+          <VerticalTimelineElement
+            key={step.id}
+            className="vertical-timeline-element--work"
+            // contentStyle={{ background: step.bgColor, color: '#fff' }}
+            contentStyle={{
+              background: 'color-mix(in srgb, var(--cyber-blue) 50%, transparent)',
+              backdropFilter: 'blur(12px)',
+              border: '1px solid color-mix(in srgb, var(--cyber-accent) 20%, transparent)',
+              borderRadius: 'var(--radius)',
+              color: '#fff',
+              transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+            }}
+            contentArrowStyle={{ borderRight: `7px solid ${step.bgColor}` }}
+            date={`Step 0${step.id}`}
+            iconStyle={{ background: step.bgColor, color: '#fff' }}
+            icon={step.icon}
+          >
+            <h3 className="text-lg font-semibold">{step.title}</h3>
+            <p className="text-sm mt-2">{step.description}</p>
+          </VerticalTimelineElement>
+        ))}
+      </VerticalTimeline>
 
-      {/* Scroll to Top Button */}
-      {showScrollTop && (
-        <motion.button
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: 1, scale: 1 }}
-        whileHover={{ rotate: 360, scale: 1.1 }}
-        transition={{ type: 'tween', duration: 0.3, ease: 'easeInOut' }}
-        onClick={scrollToTop}
-        className="fixed bottom-8 right-8 bg-cyber-accent text-cyber-dark p-3 rounded-full shadow-lg hover:shadow-cyber-accent/30 transition-all duration-300 z-50"
-     
-        >
-          <ArrowUp className="h-5 w-5" />
-        </motion.button>
-      )}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { ArrowUp } from "lucide-react";
 import HeroSection from "@/components/Home/HeroSection";
 import Navbar from "@/components/common/Navbar";
 import Footer from "@/components/common/Footer";
+import HowItWorks from "@/components/Home/HowItWorks";
 
 
 
@@ -34,6 +35,7 @@ export default function HomePage() {
       {/* Main Content */}
       <div className="py-4 mt-14">
       <HeroSection />
+      <HowItWorks />
 
 
       {/* Tech Stack Section */}
