@@ -1,8 +1,10 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-
 import fetch from 'node-fetch';
+
+// Set your backend URL here
+const BACKEND_URL = 'https://your-backend.com'; // <-- CHANGE THIS
 
 export function activate(context: vscode.ExtensionContext) {
   // Command to enter API key
@@ -14,8 +16,25 @@ export function activate(context: vscode.ExtensionContext) {
         password: true,
       });
       if (apiKey) {
-        await context.secrets.store('kadakaiApiKey', apiKey);
-        vscode.window.showInformationMessage('API key saved!');
+        // Validate API key with backend
+        try {
+          const res = await fetch(`${BACKEND_URL}/api/validate-apikey`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${apiKey}`
+            },
+          });
+          if (res.ok) {
+            await context.secrets.store('kadakaiApiKey', apiKey);
+            vscode.window.showInformationMessage('API key validated and saved!');
+          } else {
+            const data = await res.json();
+            vscode.window.showErrorMessage('Invalid API key: ' + (data.message || 'Validation failed'));
+          }
+        } catch (err) {
+          vscode.window.showErrorMessage('Failed to validate API key: ' + err);
+        }
       }
     })
   );
@@ -62,8 +81,7 @@ export function activate(context: vscode.ExtensionContext) {
         title: 'Kadakai: Scanning workspace...'
       }, async () => {
         try {
-          // TODO: Set your backend URL here
-          const backendUrl = 'http://localhost:3000/api/scan-code';
+          const backendUrl = `${BACKEND_URL}/api/scan-code`;
           const res = await fetch(backendUrl, {
             method: 'POST',
             headers: {
