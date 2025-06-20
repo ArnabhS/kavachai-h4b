@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@civic/auth-web3": "^0.6.0",
+    "@google/genai": "^1.5.1",
     "@google/generative-ai": "^0.24.1",
     "@solana/wallet-adapter-react": "^0.15.39",
     "next": "15.3.4",
