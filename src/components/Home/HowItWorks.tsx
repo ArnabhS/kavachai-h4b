@@ -8,7 +8,7 @@ const steps = [
     id: 1,
     title: "Login",
     description:
-      "Sign in to your Kadakai account using Civic Auth for secure, verified access to our security platform.",
+      "Sign in to your Kavach.ai account using Civic Auth for secure, verified access to our security platform.",
     icon: <LogIn size={24} />,
     bgColor: "#3B82F6",
   },

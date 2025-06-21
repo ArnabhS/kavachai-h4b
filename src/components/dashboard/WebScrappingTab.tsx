@@ -88,18 +88,18 @@ export function WebScrapingTab({ onScanComplete }: WebScrapingTabProps) {
         animate={{ opacity: 1, y: 0 }}
       >
         <h3 className="text-lg font-semibold text-white mb-4">Website Security Scanner</h3>
-        <div className="flex space-x-4">
+        <div className="flex flex-col md:flex-row space-x-4">
           <input
             type="url"
             placeholder="Enter website URL to scan..."
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-gray-600"
+            className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-gray-600 mb-4 md:mb-0"
             onKeyPress={(e) => e.key === "Enter" && handleScan()}
           />
           <Button
             onClick={handleScan}
-            className="bg-white hover:bg-gray-100 text-black px-6"
+            className="bg-white hover:bg-gray-100 text-black px-4 lg:px-6"
             disabled={loading || !url.trim()}
           >
             {loading ? "Scanning..." : "Scan"}
