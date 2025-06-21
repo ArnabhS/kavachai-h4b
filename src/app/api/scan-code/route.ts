@@ -767,14 +767,27 @@ function scanCSharp(content: string): ScanIssue[] {
   return issues;
 }
 
-function scanFile(file: { file: string; content: string }): ScanResult {
-  const { file: filename, content } = file;
+function scanFile(file: { file: string; content: string; environment?: string }): ScanResult {
+  const { file: filename, content, environment } = file;
   let issues: ScanIssue[] = [];
 
+  // Use environment to scope rules
   if (filename.endsWith('.js') || filename.endsWith('.ts')) {
-    issues = scanJavaScript(content);
+    if (environment === 'client') {
+      // Only run client-side JS rules (XSS, DOM, etc.)
+      issues = scanJavaScript(content);
+    } else if (environment === 'server') {
+      // Only run server-side JS rules (no XSS, but SSRF, etc. - TODO: add more server rules)
+      // For now, run only a subset (skip XSS/DOM rules)
+      issues = scanJavaScript(content).filter(issue => !['innerhtml-usage', 'document-write', 'external-script'].includes(issue.type));
+    } else {
+      // Unknown, run all for now
+      issues = scanJavaScript(content);
+    }
   } else if (filename.endsWith('.html')) {
-    issues = scanHTML(content);
+    if (environment === 'client' || environment === 'unknown') {
+      issues = scanHTML(content);
+    } // else skip HTML rules for server
   } else if (filename.endsWith('.sol')) {
     issues = scanSolidity(content);
   } else if (filename.endsWith('.py')) {

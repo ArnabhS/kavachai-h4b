@@ -190,10 +190,26 @@ function activate(context) {
         for (const file of files) {
             try {
                 const content = fs.readFileSync(file.fsPath, 'utf8');
+                // Detect environment (server or client)
+                let environment = 'unknown';
+                const lowerPath = file.fsPath.toLowerCase();
+                if (lowerPath.includes('/pages/api/') || lowerPath.includes('server') || lowerPath.endsWith('.server.js') || lowerPath.endsWith('.server.ts')) {
+                    environment = 'server';
+                }
+                else if (lowerPath.includes('/pages/') || lowerPath.includes('components') || lowerPath.endsWith('.client.js') || lowerPath.endsWith('.client.ts') || lowerPath.endsWith('.jsx') || lowerPath.endsWith('.tsx')) {
+                    environment = 'client';
+                }
+                else if (content.match(/require\(['"]express['"]\)/) || content.match(/from ['"]express['"]/)) {
+                    environment = 'server';
+                }
+                else if (content.match(/import React/) || content.match(/from ['"]react['"]/)) {
+                    environment = 'client';
+                }
                 fileContents.push({
                     file: path.basename(file.fsPath),
                     content: content.slice(0, 10000),
-                    path: file.fsPath
+                    path: file.fsPath,
+                    environment
                 });
             }
             catch {
