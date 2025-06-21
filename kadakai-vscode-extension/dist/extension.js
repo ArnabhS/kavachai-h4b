@@ -31,6 +31,8 @@ const vscode = __importStar(require("vscode"));
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const node_fetch_1 = __importDefault(require("node-fetch"));
+// Set your backend URL here
+const BACKEND_URL = 'http://localhost:3000'; // <-- CHANGE THIS
 function activate(context) {
     // Command to enter API key
     context.subscriptions.push(vscode.commands.registerCommand('kadakai.enterApiKey', async () => {
@@ -40,8 +42,27 @@ function activate(context) {
             password: true,
         });
         if (apiKey) {
-            await context.secrets.store('kadakaiApiKey', apiKey);
-            vscode.window.showInformationMessage('API key saved!');
+            // Validate API key with backend
+            try {
+                const res = await (0, node_fetch_1.default)(`${BACKEND_URL}/api/validate-apikey`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                });
+                if (res.ok) {
+                    await context.secrets.store('kadakaiApiKey', apiKey);
+                    vscode.window.showInformationMessage('API key validated and saved!');
+                }
+                else {
+                    const data = await res.json();
+                    vscode.window.showErrorMessage('Invalid API key: ' + (data.message || 'Validation failed'));
+                }
+            }
+            catch (err) {
+                vscode.window.showErrorMessage('Failed to validate API key: ' + err);
+            }
         }
     }));
     // On activation, check if API key exists, else prompt
@@ -81,8 +102,7 @@ function activate(context) {
             title: 'Kadakai: Scanning workspace...'
         }, async () => {
             try {
-                // TODO: Set your backend URL here
-                const backendUrl = 'http://localhost:3000/api/scan-code';
+                const backendUrl = `${BACKEND_URL}/api/scan-code`;
                 const res = await (0, node_fetch_1.default)(backendUrl, {
                     method: 'POST',
                     headers: {

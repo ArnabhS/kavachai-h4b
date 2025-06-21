@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getApiKey } from '@/lib/models';
+import { getUser } from '@civic/auth-web3/nextjs';
 
-const DEMO_USER_ID = 'demo-user'; // TODO: Replace with real user auth
 
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
-  const doc = await getApiKey(DEMO_USER_ID);
+  const user = await getUser();
+  if(!user){
+    return NextResponse.json({ message: 'User not found' }, { status: 404 });
+
+  }
+  const doc = await getApiKey(user?.id);
   if (!authHeader || !doc || authHeader !== `Bearer ${doc.apiKey}`) {
     return NextResponse.json({ message: 'Invalid or missing API key.' }, { status: 401 });
   }

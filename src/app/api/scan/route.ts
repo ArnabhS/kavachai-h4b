@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
   
 
 const user = await getUser();
- 
+console.log(user) 
   if(!user){
     return NextResponse.json({
         message:"User not found. Please log in",

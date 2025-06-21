@@ -4,7 +4,7 @@ import * as path from 'path';
 import fetch from 'node-fetch';
 
 // Set your backend URL here
-const BACKEND_URL = 'https://your-backend.com'; // <-- CHANGE THIS
+const BACKEND_URL = 'http://localhost:3000'; // <-- CHANGE THIS
 
 export function activate(context: vscode.ExtensionContext) {
   // Command to enter API key

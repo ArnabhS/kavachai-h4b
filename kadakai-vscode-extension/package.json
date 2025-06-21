@@ -1,13 +1,14 @@
 {
   "name": "kadakai-white-hat-agent",
   "displayName": "Kadakai White Hat Agent",
-  "description": "Scan Web2/Web3 code and wallets for vulnerabilities. Integrates with Kadakai web app.",
+  "description": "Scan Web2/Web3 code and wallets for vulnerabilities. Integrates with Kadakai web app for advanced security analysis.",
   "version": "0.0.1",
   "publisher": "kadakai",
   "engines": {
     "vscode": ">=1.70.0"
   },
-  "categories": ["Other"],
+  "categories": ["Other", "Security", "Web"],
+  "keywords": ["security", "vulnerability", "scanning", "web3", "blockchain", "solidity", "javascript", "typescript", "html", "cybersecurity"],
   "activationEvents": [
     "onCommand:kadakai.enterApiKey",
     "onCommand:kadakai.scanWorkspace"
@@ -42,5 +43,24 @@
   },
   "dependencies": {
     "node-fetch": "^2.6.7"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ArnabhS/kadakai-h4b"
+  },
+  "bugs": {
+    "url": "https://github.com/ArnabhS/kadakai-h4bs"
+  },
+  "homepage": "https://github.com/ArnabhS/kadakai-h4b",
+  "license": "MIT",
+  "author": {
+    "name": "Kadakai Team",
+    "email": "sinhaarnabh888@gmail.com"
+  },
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
+  "markdown": "github"
 } 
