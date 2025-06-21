@@ -6,8 +6,7 @@ import HeroSection from "@/components/Home/HeroSection";
 import Navbar from "@/components/common/Navbar";
 import Footer from "@/components/common/Footer";
 import HowItWorks from "@/components/Home/HowItWorks";
-
-
+import InnovationGrid from "@/components/Home/InnovationGrid";
 
 export default function HomePage() {
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -26,16 +25,14 @@ export default function HomePage() {
 
   return (
     <div className="min-h -screen bg-cyber-dark text-white">
-      {/* Navigation */}
       <div>
         <Navbar />
       </div>
       
-
-      {/* Main Content */}
       <div className="py-4 mt-14">
       <HeroSection />
       <HowItWorks />
+      <InnovationGrid />
 
 
       {/* Tech Stack Section */}
