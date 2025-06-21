@@ -34,7 +34,7 @@ export default function Page() {
 
             <Shield className="h-16 w-16 text-cyber-accent mx-auto hidden lg:block" />
           </motion.div>
-          <h1 className=" text-xl md:text-2xl lg:text-3xl font-bold mb-1 glow-text">Kadak.AI</h1>
+          <h1 className=" text-xl md:text-2xl lg:text-3xl font-bold mb-1 glow-text">Kavach.AI</h1>
           <p className="text-cyber-accent font-semibold mb-4 text-xs md:text-sm tracking-wide">Decentralized AI-Powered Cyber Defense</p>
 
           <h2 className=" text-base lg:text-xl font-semibold text-white mb-2">Welcome!</h2>
@@ -79,7 +79,7 @@ export default function Page() {
         </motion.div>
 
         <footer className="mt-10 text-center text-gray-500 text-xs opacity-70 z-10">
-          &copy; {new Date().getFullYear()} Kadak.AI. All rights reserved.
+          &copy; {new Date().getFullYear()} Kavach.AI. All rights reserved.
         </footer>
       </div>
     </div>

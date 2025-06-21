@@ -98,7 +98,7 @@ const InnovationGrid = () => {
           })}
         </div>
 
-        {/* Why Kadak.AI Wins */}
+      
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -107,7 +107,7 @@ const InnovationGrid = () => {
           className="mt-16 text-center"
         >
           <div className="bg-cyber-blue/20 rounded-2xl p-8 border border-cyber-accent/20">
-            <h3 className="text-2xl font-bold mb-4 glow-text">Why Kadak.AI Wins</h3>
+            <h3 className="text-2xl font-bold mb-4 glow-text">Why Kavach.AI Wins</h3>
             <div className="grid md:grid-cols-3 gap-6 text-left">
               <div>
                 <h4 className="font-semibold text-cyber-accent mb-2">Market Need</h4>

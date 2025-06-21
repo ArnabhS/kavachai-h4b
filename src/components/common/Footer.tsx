@@ -14,7 +14,7 @@ const Footer = () => {
               className="flex items-center space-x-2 mb-4 md:mb-0"
             >
               <Shield className="h-6 w-6 text-cyber-accent" />
-              <span className="text-lg font-bold glow-text">Kadak.AI</span>
+              <span className="text-lg font-bold glow-text">Kavach.AI</span>
             </motion.div>
 
             <motion.div
@@ -33,7 +33,7 @@ const Footer = () => {
           </div>
 
           <div className="mt-8 pt-8 border-t border-cyber-accent/20 text-center text-gray-400 text-sm">
-            <p>&copy; 2024 Kadak.AI. Decentralized AI-Powered Cyber Defense.</p>
+            <p>&copy; 2024 Kavach.AI. Decentralized AI-Powered Cyber Defense.</p>
           </div>
         </div>
       </footer>        

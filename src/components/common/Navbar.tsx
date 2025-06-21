@@ -14,7 +14,7 @@ const Navbar = () => {
                       className="flex items-center space-x-2"
                     >
                       <Shield className="h-8 w-8 text-cyber-accent" />
-                      <span className="text-xl font-bold glow-text">Kadak.AI</span>
+                      <span className="text-xl font-bold glow-text">Kavach.AI</span>
                     </motion.div>
 
 

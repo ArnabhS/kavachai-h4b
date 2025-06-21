@@ -176,7 +176,7 @@ const HeroSection = () => {
                           </div>
                           <div className="flex items-center space-x-2 text-sm text-gray-400">
                             <Code className="h-4 w-4" />
-                            <span>Kadak.AI for VSCode</span>
+                            <span>Kavach.AI for VSCode</span>
                           </div>
                           <div className="text-right">
                             <div className="text-xs text-gray-500">Today&#39;s Goals</div>
