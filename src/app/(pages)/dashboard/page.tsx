@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 type Web2Result = Record<string, unknown> | { error: string } | null;
 type Web3Result = Record<string, unknown> | { error: string } | null;
@@ -14,10 +14,82 @@ const Dashboard = () => {
   const [web3Result, setWeb3Result] = useState<Web3Result>(null);
   const [loggerLoading, setLoggerLoading] = useState(false);
   const [loggerResult, setLoggerResult] = useState<LoggerResult>(null);
+  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [apiKeyLoading, setApiKeyLoading] = useState(false);
+  const [apiKeyError, setApiKeyError] = useState<string | null>(null);
+
+  // Fetch API key on mount
+  useEffect(() => {
+    const fetchApiKey = async () => {
+      setApiKeyLoading(true);
+      setApiKeyError(null);
+      try {
+        const res = await fetch("/api/apikey");
+        const data = await res.json();
+        if (data.apiKey) setApiKey(data.apiKey);
+        else setApiKeyError("No API key found.");
+      } catch {
+        setApiKeyError("Failed to fetch API key.");
+      }
+      setApiKeyLoading(false);
+    };
+    fetchApiKey();
+  }, []);
+
+  // Regenerate API key
+  const regenerateApiKey = async () => {
+    setApiKeyLoading(true);
+    setApiKeyError(null);
+    try {
+      const res = await fetch("/api/apikey", { method: "POST" });
+      const data = await res.json();
+      if (data.apiKey) setApiKey(data.apiKey);
+      else setApiKeyError("Failed to regenerate API key.");
+    } catch {
+      setApiKeyError("Failed to regenerate API key.");
+    }
+    setApiKeyLoading(false);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <h1 className="text-3xl font-bold mb-8">AI Cybersecurity Agent Dashboard</h1>
+      {/* API Key Management Section */}
+      <div className="bg-white p-4 rounded shadow mb-8 max-w-xl">
+        <h2 className="text-lg font-semibold mb-2">VS Code Extension API Key</h2>
+        <p className="mb-2 text-gray-600">Use this API key to connect the Kadakai VS Code extension to your account.</p>
+        {apiKeyLoading ? (
+          <div className="text-blue-600">Loading...</div>
+        ) : apiKeyError ? (
+          <div className="text-red-600">{apiKeyError}</div>
+        ) : apiKey ? (
+          <div className="flex items-center space-x-2 mb-2">
+            <input
+              type="text"
+              value={apiKey}
+              readOnly
+              className="border p-2 rounded w-full font-mono text-xs bg-gray-100"
+              onFocus={e => e.target.select()}
+            />
+            <button
+              className="bg-gray-200 px-2 py-1 rounded text-xs"
+              onClick={() => {
+                navigator.clipboard.writeText(apiKey);
+              }}
+            >
+              Copy
+            </button>
+          </div>
+        ) : null}
+        <button
+          className="bg-blue-600 text-white px-3 py-1 rounded text-xs mt-2"
+          onClick={regenerateApiKey}
+          disabled={apiKeyLoading}
+        >
+          Regenerate API Key
+        </button>
+      </div>
+      {/* End API Key Management Section */}
       <div className="flex space-x-4 mb-8">
         <button
           className={`px-4 py-2 rounded ${activeTab === "web2" ? "bg-blue-600 text-white" : "bg-white border"}`}
