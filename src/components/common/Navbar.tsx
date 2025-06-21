@@ -13,7 +13,7 @@ const Navbar = () => {
                       animate={{ opacity: 1, x: 0 }}
                       className="flex items-center space-x-2"
                     >
-                     <Image src={'/kavachai.webp'} width={100} height={100} className="h-10 w-10 rounded-full" alt="logo" />
+                     <Image src={'/logo.webp'} width={100} height={100} className="h-10 w-10 rounded-full" alt="logo" />
                       <span className="text-xl font-bold glow-text">Kavach.AI</span>
                     </motion.div>
 

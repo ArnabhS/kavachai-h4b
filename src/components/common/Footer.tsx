@@ -1,5 +1,6 @@
 import { motion } from "framer-motion"
-import { Github, Shield, Twitter } from "lucide-react"
+import { Github, Twitter } from "lucide-react"
+import Image from "next/image"
 
 const Footer = () => {
   return (
@@ -13,7 +14,7 @@ const Footer = () => {
               viewport={{ once: true }}
               className="flex items-center space-x-2 mb-4 md:mb-0"
             >
-              <Shield className="h-6 w-6 text-cyber-accent" />
+               <Image src={'/logo.webp'} width={100} height={100} className="h-10 w-10 rounded-full" alt="logo" />
               <span className="text-lg font-bold glow-text">Kavach.AI</span>
             </motion.div>
 
@@ -32,7 +33,7 @@ const Footer = () => {
             </motion.div>
           </div>
 
-          <div className="mt-8 pt-8 border-t border-cyber-accent/20 text-center text-gray-400 text-sm">
+          <div className="mt-8 pt-8  text-center text-gray-400 text-sm">
             <p>&copy; 2024 Kavach.AI. Decentralized AI-Powered Cyber Defense.</p>
           </div>
         </div>
