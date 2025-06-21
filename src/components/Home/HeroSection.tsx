@@ -125,7 +125,7 @@ const HeroSection = () => {
                       >
                         <Button
                           size="lg"
-                          className="bg-white hover:bg-gray-100 text-black px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
+                          className="bg-white hover:bg-gray-100 text-black px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:cursor-pointer"
                         >
                           Dashboard
                           <TrendingUp className="ml-2 h-5 w-5" />
@@ -134,7 +134,7 @@ const HeroSection = () => {
                         <Button
                           variant="outline"
                           size="lg"
-                          className="border-gray-700 text-gray-300 hover:bg-gray-900 hover:border-gray-600 px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105"
+                          className="border-gray-100 text-gray-300 hover:bg-gray-900 hover:border-gray-600 px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:cursor-pointer"
                         >
                           <Code className="mr-2 h-5 w-5" />
                           Security Extension
@@ -149,9 +149,7 @@ const HeroSection = () => {
                         transition={{ duration: 0.8, delay: 1.0 }}
                       >
                         <AnimatedTooltip items={people} />
-                        <p className="text-gray-500">
-                          Trusted by <span className="text-white font-semibold">2500+</span> Web3 projects
-                        </p>
+                       
                       </motion.div>
                     </motion.div>
         

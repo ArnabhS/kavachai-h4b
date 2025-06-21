@@ -59,7 +59,7 @@ export function activate(context: vscode.ExtensionContext) {
       }
 
       // Get all files matching extensions
-      const files = await vscode.workspace.findFiles('**/*.{js,ts,sol,html}', '**/node_modules/**');
+      const files = await vscode.workspace.findFiles('**/*.{js,ts,sol,html,py,java,php,rb,go,rs,cpp,c,cs}', '**/node_modules/**');
       if (files.length === 0) {
         vscode.window.showInformationMessage('No relevant files found in workspace.');
         return;

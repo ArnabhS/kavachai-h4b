@@ -6,7 +6,7 @@ import HeroSection from "@/components/Home/HeroSection";
 import Navbar from "@/components/common/Navbar";
 import Footer from "@/components/common/Footer";
 import HowItWorks from "@/components/Home/HowItWorks";
-import InnovationGrid from "@/components/Home/InnovationGrid";
+
 import Features from "@/components/Home/Features";
 import FAQ from "@/components/Home/Faq";
 
@@ -34,7 +34,6 @@ export default function HomePage() {
       <div className="py-4 mt-14">
       <HeroSection />
       <HowItWorks />
-      <InnovationGrid />
       <Features />
       <FAQ />
       

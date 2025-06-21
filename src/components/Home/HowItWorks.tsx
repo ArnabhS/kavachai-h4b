@@ -1,40 +1,66 @@
 import { VerticalTimeline, VerticalTimelineElement } from 'react-vertical-timeline-component';
 import 'react-vertical-timeline-component/style.min.css';
-import { ShieldAlert, CheckCircle, User } from "lucide-react";
+import { LogIn, Globe, Bug, Download, Key } from "lucide-react";
 
 
 const steps = [
   {
     id: 1,
-    title: "Civic Auth Verification",
+    title: "Login",
     description:
-      "Verified white-hat hackers and security experts join our trusted network through Civic identity verification.",
-    icon: <User size={24} />,
-    bgColor: "var(--cyber-accent)",
+      "Sign in to your Kadakai account using Civic Auth for secure, verified access to our security platform.",
+    icon: <LogIn size={24} />,
+    bgColor: "#3B82F6",
   },
   {
     id: 2,
-    title: "Agent AI Detection",
+    title: "Paste Website URL",
     description:
-      "Our agentic AI continuously monitors Web3 protocols, analyzing smart contracts and detecting threats in real-time.",
-    icon: <ShieldAlert size={24} />,
-    bgColor: "var(--cyber-neon)",
+      "Simply paste the website URL you want to scan for vulnerabilities and security issues.",
+    icon: <Globe size={24} />,
+    bgColor: "#10B981",
   },
   {
     id: 3,
-    title: "Human Approval",
+    title: "Vulnerabilities & Suggestions",
     description:
-      "Verified experts review AI findings, approve responses, and execute mitigation strategies for maximum accuracy.",
-    icon: <CheckCircle size={24} />,
-    bgColor: "var(--cyber-purple)",
+      "Our AI-powered system analyzes the website and provides detailed vulnerability reports with actionable security suggestions.",
+    icon: <Bug size={24} />,
+    bgColor: "#EF4444",
+  },
+  {
+    id: 4,
+    title: "VsCode Extension",
+    description:
+      "Install our VsCode extension for real-time security monitoring and instant vulnerability detection while coding.",
+    icon: <Download size={24} />,
+    bgColor: "#8B5CF6",
+  },
+  {
+    id: 5,
+    title: "Verify with Token",
+    description:
+      "Get your verification token from the dashboard and authenticate your VS Code extension for seamless integration.",
+    icon: <Key size={24} />,
+    bgColor: "#F59E0B",
   },
 ];
 
 export default function TimelinePage() {
   return (
     <div className="min-h-screen flex flex-col items-center px-4 py-12 sm:px-6 lg:px-8">
+      <style jsx>{`
+        .vertical-timeline::before {
+          background: #374151 !important;
+          width: 2px !important;
+        }
+        .vertical-timeline-element-icon {
+          box-shadow: 0 0 0 4px #1F2937 !important;
+        }
+      `}</style>
+      
       <h2 className="text-3xl font-bold glow-text text-center mb-2">How It Works</h2>
-      <p className="text-slate-400 text-center tracking-tight mb-12">A simple 3-step process that combines human expertise with AI precision</p>
+      <p className="text-slate-400 text-center tracking-tight mb-12">A simple 5-step process for comprehensive website security scanning</p>
 
       {/* <VerticalTimeline >
         {steps.map((step) => (
