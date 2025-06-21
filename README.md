@@ -41,11 +41,11 @@ KavachAI is not just another linter. It's a comprehensive security platform that
 
 **Centralized Security Dashboard**
 *A unified view of your project's security posture.*
-![Dashboard Screenshot](/images/webscrap.png) 
+![Dashboard Screenshot](/src/assets/webscrap.png) 
 
 **Real-time Scanning in VS Code**
 *Vulnerabilities detected and fixed directly in your editor.*
-![VS Code Extension Screenshot](/images/extension.png)
+![VS Code Extension Screenshot](/src/assets/extension.png)
 
 ---
 
