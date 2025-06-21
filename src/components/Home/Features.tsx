@@ -82,7 +82,7 @@ const fadeInUpVariants = {
 export default function Features() {
   return (
     <motion.div
-      className="py-12 bg-gradient-to-b from-gray-950 to-black"
+      className="py-12 bg-gradient-to-b from-gray-950 to-black px-8"
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, margin: "-100px" }}

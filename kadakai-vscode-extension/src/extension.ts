@@ -178,7 +178,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('kavachai.scanWorkspace', async () => {
       const apiKey = await context.secrets.get('kavachaiApiKey');
       if (!apiKey) {
-        vscode.window.showErrorMessage('Kavach.ai API key not set. Please run "Kavach.ai: Enter API Key".');
+        vscode.window.showErrorMessage('Kavach.ai API key not set. Please login to the Kavach.ai web app and copy your API key from the dashboard.');
         return;
       }
 
@@ -666,6 +666,7 @@ function getSensitiveFilesWebviewContent(sensitiveFiles: SensitiveFile[]): strin
   `;
 }
 
+// Function to show vulnerability panel
 function showVulnerabilityPanel(result: any, context: vscode.ExtensionContext) {
   const panel = vscode.window.createWebviewPanel(
     'kavachaiVulnerabilities',
@@ -678,12 +679,12 @@ function showVulnerabilityPanel(result: any, context: vscode.ExtensionContext) {
   );
 
   // Handle both old and new response formats
-  const vulnerabilities = result.vulnerabilities || [];
+  const vulnerabilities: Vulnerability[] = result.vulnerabilities || [];
   const summary = result.extensionSummary || result.summary || { total: 0, high: 0, medium: 0, low: 0 };
   
   panel.webview.html = getWebviewContent(vulnerabilities, summary);
 
-  // Handle messages from webview
+  // Store vulnerabilities for later use in openFile
   panel.webview.onDidReceiveMessage(
     async message => {
       switch (message.command) {
@@ -695,6 +696,14 @@ function showVulnerabilityPanel(result: any, context: vscode.ExtensionContext) {
           break;
         case 'openFile':
           await openFileAtLine(message.file, message.line);
+          // After opening, show Accept/Reject options in the editor
+          const vuln = vulnerabilities[message.vulnIndex] || vulnerabilities.find((v: Vulnerability) => v.file === message.file && v.line === message.line);
+          if (vuln) {
+            const accept = await vscode.window.showInformationMessage('Apply suggested fix for this vulnerability?', 'Accept', 'Reject');
+            if (accept === 'Accept') {
+              await applyCodeFix(vuln);
+            }
+          }
           break;
       }
     },
@@ -780,20 +789,20 @@ function getWebviewContent(vulnerabilities: Vulnerability[], summary: any): stri
       <div class="vuln-content">
         <h4>${vuln.description}</h4>
         <p class="file-info">File: ${vuln.file} (Line ${vuln.line})</p>
-        <div class="code-section">
-          <div class="code-block">
-            <h5>Original Code:</h5>
+        <div class="side-by-side-diff">
+          <div class="diff-block">
+            <h5>Current Code</h5>
             <pre><code>${escapeHtml(vuln.originalCode)}</code></pre>
           </div>
-          <div class="code-block">
-            <h5>Suggested Fix:</h5>
+          <div class="diff-block">
+            <h5>Suggested Fix</h5>
             <pre><code>${escapeHtml(vuln.fixedCode)}</code></pre>
           </div>
         </div>
         <div class="actions">
-          <button class="btn btn-primary" onclick="applyFix(${index})">Apply Fix</button>
+          <button class="btn btn-primary" onclick="acceptFix(${index})">Accept</button>
           <button class="btn btn-secondary" onclick="rejectFix(${index})">Reject</button>
-          <button class="btn btn-outline" onclick="openFile('${vuln.file}', ${vuln.line})">Open File</button>
+          <button class="btn btn-outline" onclick="openFile('${vuln.file}', ${vuln.line}, ${index})">Open File</button>
         </div>
       </div>
     </div>
@@ -814,31 +823,26 @@ function getWebviewContent(vulnerabilities: Vulnerability[], summary: any): stri
           background-color: var(--vscode-editor-background);
           color: var(--vscode-editor-foreground);
         }
-        
         .header {
           margin-bottom: 30px;
           padding-bottom: 20px;
           border-bottom: 1px solid var(--vscode-panel-border);
         }
-        
         .summary {
           display: flex;
           gap: 20px;
           margin-bottom: 20px;
         }
-        
         .summary-item {
           background: var(--vscode-editor-inactiveSelectionBackground);
           padding: 10px 15px;
           border-radius: 6px;
           text-align: center;
         }
-        
         .summary-number {
           font-size: 24px;
           font-weight: bold;
         }
-        
         .vulnerability-card {
           background: var(--vscode-editor-background);
           border: 1px solid var(--vscode-panel-border);
@@ -846,7 +850,6 @@ function getWebviewContent(vulnerabilities: Vulnerability[], summary: any): stri
           margin-bottom: 20px;
           overflow: hidden;
         }
-        
         .vuln-header {
           display: flex;
           align-items: center;
@@ -855,7 +858,6 @@ function getWebviewContent(vulnerabilities: Vulnerability[], summary: any): stri
           background: var(--vscode-editor-inactiveSelectionBackground);
           border-bottom: 1px solid var(--vscode-panel-border);
         }
-        
         .severity-badge {
           color: white;
           padding: 4px 8px;
@@ -863,57 +865,49 @@ function getWebviewContent(vulnerabilities: Vulnerability[], summary: any): stri
           font-size: 12px;
           font-weight: bold;
         }
-        
         .vuln-type {
           font-weight: 500;
           color: var(--vscode-descriptionForeground);
         }
-        
         .vuln-content {
           padding: 20px;
         }
-        
         .vuln-content h4 {
           margin: 0 0 10px 0;
           color: var(--vscode-editor-foreground);
         }
-        
         .file-info {
           color: var(--vscode-descriptionForeground);
           font-size: 14px;
           margin-bottom: 15px;
         }
-        
-        .code-section {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
+        .side-by-side-diff {
+          display: flex;
           gap: 20px;
           margin-bottom: 20px;
         }
-        
-        .code-block h5 {
-          margin: 0 0 10px 0;
-          color: var(--vscode-editor-foreground);
-        }
-        
-        .code-block pre {
+        .diff-block {
+          flex: 1;
           background: var(--vscode-editor-inactiveSelectionBackground);
           padding: 15px;
           border-radius: 6px;
+        }
+        .diff-block h5 {
+          margin: 0 0 10px 0;
+          color: var(--vscode-editor-foreground);
+        }
+        .diff-block pre {
           margin: 0;
           overflow-x: auto;
         }
-        
-        .code-block code {
+        .diff-block code {
           font-family: 'Consolas', 'Monaco', monospace;
           font-size: 13px;
         }
-        
         .actions {
           display: flex;
           gap: 10px;
         }
-        
         .btn {
           padding: 8px 16px;
           border: none;
@@ -923,35 +917,28 @@ function getWebviewContent(vulnerabilities: Vulnerability[], summary: any): stri
           font-weight: 500;
           transition: all 0.2s;
         }
-        
         .btn-primary {
           background: var(--vscode-button-background);
           color: var(--vscode-button-foreground);
         }
-        
         .btn-primary:hover {
           background: var(--vscode-button-hoverBackground);
         }
-        
         .btn-secondary {
           background: var(--vscode-button-secondaryBackground);
           color: var(--vscode-button-secondaryForeground);
         }
-        
         .btn-secondary:hover {
           background: var(--vscode-button-secondaryHoverBackground);
         }
-        
         .btn-outline {
           background: transparent;
           color: var(--vscode-button-foreground);
           border: 1px solid var(--vscode-button-border);
         }
-        
         .btn-outline:hover {
           background: var(--vscode-button-hoverBackground);
         }
-        
         .no-vulnerabilities {
           text-align: center;
           padding: 40px;
@@ -981,32 +968,28 @@ function getWebviewContent(vulnerabilities: Vulnerability[], summary: any): stri
           </div>
         </div>
       </div>
-      
       ${vulnerabilities.length > 0 ? vulnerabilityCards : '<div class="no-vulnerabilities"><h3>🎉 No vulnerabilities found!</h3><p>Your code appears to be secure.</p></div>'}
-      
       <script>
         const vscode = acquireVsCodeApi();
         const vulnerabilities = ${JSON.stringify(vulnerabilities)};
-        
-        function applyFix(index) {
+        function acceptFix(index) {
           vscode.postMessage({
             command: 'applyFix',
             vulnerability: vulnerabilities[index]
           });
         }
-        
         function rejectFix(index) {
           vscode.postMessage({
             command: 'rejectFix',
             vulnerability: vulnerabilities[index]
           });
         }
-        
-        function openFile(file, line) {
+        function openFile(file, line, index) {
           vscode.postMessage({
             command: 'openFile',
             file: file,
-            line: line
+            line: line,
+            vulnIndex: index
           });
         }
       </script>

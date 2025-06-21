@@ -5,6 +5,7 @@ import DotGrid from '@/components/ui/DotGrid';
 import { Button } from '@/components/ui/button';
 import { Award, Clock, Code, Target, TrendingUp, Zap } from 'lucide-react';
 import { AnimatedTooltip } from '../ui/animated-tooltip';
+import Link from 'next/link';
 
 const people = [
   {
@@ -77,7 +78,7 @@ const HeroSection = () => {
         <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-gray-900/20 via-black to-gray-900/20"></div>
                 <div className="container mx-auto px-4 py-8 lg:py-16 relative z-10">
-                  <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+                  <div className="grid  lg:grid-cols-2 gap-8 lg:gap-12 items-center">
                     
                     <motion.div
                       className="space-y-8"
@@ -88,7 +89,7 @@ const HeroSection = () => {
                       <div className="space-y-4">
                         
                         <motion.div
-                          className="space-y-2"
+                          className="space-y-2 text-pretty"
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.8, delay: 0.4 }}
@@ -111,18 +112,20 @@ const HeroSection = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 0.6 }}
                       >
-                        <p className="text-lg md:text-xl text-gray-300 leading-relaxed">
+                        <p className="text-base md:text-lg text-gray-300 leading-relaxed md:max-w-82">
                           Civic-Verified Experts + Agentic AI to Stop Web3 Threats in Real Time.
                         </p>
-                        <p className="text-base md:text-lg text-gray-500">90% of DeFi hacks go undetected - until now.</p>
+                        <p className="text-sm md:text-base text-gray-500">90% of DeFi hacks go undetected - until now.</p>
                       </motion.div>
         
+                      
                       <motion.div
                         className="flex flex-col sm:flex-row gap-4"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 0.8 }}
                       >
+                        <Link href={'/dashboard'}>
                         <Button
                           size="lg"
                           className="bg-white hover:bg-gray-100 text-black px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:cursor-pointer"
@@ -130,16 +133,18 @@ const HeroSection = () => {
                           Dashboard
                           <TrendingUp className="ml-2 h-5 w-5" />
                         </Button>
-        
+                        </Link>
+                        <a href="https://marketplace.visualstudio.com/items?itemName=kavachai.kavachai-white-hat-agent" target="_blank" rel="noopener noreferrer">
                         <Button
                           variant="outline"
                           size="lg"
                           className="border-gray-100 text-gray-300 hover:bg-gray-900 hover:border-gray-600 px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:cursor-pointer"
                         >
                           <Code className="mr-2 h-5 w-5" />
-                          Security Extension
+                          VsCode Extension
                           <Zap className="ml-2 h-4 w-4 text-gray-400" />
                         </Button>
+                        </a>
                       </motion.div>
         
                       <motion.div
@@ -160,7 +165,7 @@ const HeroSection = () => {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.8, delay: 0.4 }}
                     >
-                      <div className="bg-gradient-to-br from-gray-900 to-black rounded-2xl p-6 shadow-2xl border border-gray-800">
+                      <div className="bg-gradient-to-br from-gray-900 to-black rounded-2xl p-6 shadow-2xl border-3 border-gray-800">
                         {/* Window Header */}
                         <div className="flex items-center justify-between mb-6">
                           <div className="flex space-x-2">

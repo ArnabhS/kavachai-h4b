@@ -36,7 +36,7 @@ Respond **strictly in JSON**, following this structure exactly:
   ]
 }
 
-Do not return markdown, HTML, headings, or explanations outside this JSON format. Do not summarize or repeat the prompt.
+**IMPORTANT:** Only report vulnerabilities that are highly likely and have clear evidence in the code. Do NOT report speculative, informational-only, or possible issues unless you are confident. Minimize false positives. Do not return markdown, HTML, headings, or explanations outside this JSON format. Do not summarize or repeat the prompt.
 `;
 
 
@@ -72,7 +72,7 @@ Return only a clean JSON object with the following structure:
     "string"                             
   ]
 }
-Only return valid JSON. Do not include markdown backticks or any additional explanation.
+**IMPORTANT:** Only report vulnerabilities that are highly likely and have clear evidence in the code. Do NOT report speculative, informational-only, or possible issues unless you are confident. Minimize false positives. Only return valid JSON. Do not include markdown backticks or any additional explanation.
 `;
 
 
@@ -113,5 +113,5 @@ Return only a clean JSON object with the following structure:
     ]
   }
 }
-Only return valid JSON. Do not include markdown backticks or any explanatory text outside the JSON.
+**IMPORTANT:** Only report findings that are highly likely and have clear evidence in the code. Do NOT report speculative, informational-only, or possible issues unless you are confident. Minimize false positives. Only return valid JSON. Do not include markdown backticks or any explanatory text outside the JSON.
 `;

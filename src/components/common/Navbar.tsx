@@ -6,7 +6,7 @@ const Navbar = () => {
   return (
     <div>
         <nav className="fixed top-0 w-full bg-cyber-dark/80 backdrop-blur-md border-b border-cyber-accent/20 z-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-[90%]  mx-auto">
                   <div className="flex justify-between items-center h-16">
                     <motion.div
                       initial={{ opacity: 0, x: -20 }}
