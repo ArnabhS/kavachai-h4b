@@ -1,28 +1,28 @@
 {
-  "name": "kadakai-white-hat-agent",
-  "displayName": "Kadakai White Hat Agent",
-  "description": "Scan Web2/Web3 code and wallets for vulnerabilities. Integrates with Kadakai web app for advanced security analysis.",
+  "name": "kavachai-white-hat-agent",
+  "displayName": "kavachai White Hat Agent",
+  "description": "Scan Web2/Web3 code and wallets for vulnerabilities. Integrates with kavachai web app for advanced security analysis.",
   "version": "0.0.1",
-  "publisher": "kadakai",
+  "publisher": "kavachai",
   "engines": {
     "vscode": ">=1.70.0"
   },
-  "categories": ["Other", "Security", "Web"],
+  "categories": ["Other", "Programming Languages", "Linters", "Formatters"],
   "keywords": ["security", "vulnerability", "scanning", "web3", "blockchain", "solidity", "javascript", "typescript", "html", "cybersecurity"],
   "activationEvents": [
-    "onCommand:kadakai.enterApiKey",
-    "onCommand:kadakai.scanWorkspace"
+    "onCommand:kavachai.enterApiKey",
+    "onCommand:kavachai.scanWorkspace"
   ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "kadakai.enterApiKey",
-        "title": "Kadakai: Enter API Key"
+        "command": "kavachai.enterApiKey",
+        "title": "KavachAi: Enter API Key"
       },
       {
-        "command": "kadakai.scanWorkspace",
-        "title": "Kadakai: Scan Workspace for Vulnerabilities"
+        "command": "kavachai.scanWorkspace",
+        "title": "Kavach.Ai: Scan Workspace for Vulnerabilities"
       }
     ]
   },
@@ -46,18 +46,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ArnabhS/kadakai-h4b"
+    "url": "https://github.com/ArnabhS/kavachai-h4b"
   },
   "bugs": {
-    "url": "https://github.com/ArnabhS/kadakai-h4bs"
+    "url": "https://github.com/ArnabhS/kavachai-h4b"
   },
-  "homepage": "https://github.com/ArnabhS/kadakai-h4b",
+  "homepage": "https://github.com/ArnabhS/kavachai-h4b",
   "license": "MIT",
   "author": {
-    "name": "Kadakai Team",
+    "name": "kavachai Team",
     "email": "sinhaarnabh888@gmail.com"
   },
-  "icon": "images/icon.png",
+  "icon": "images/kavachai.jpg",
   "galleryBanner": {
     "color": "#1e1e1e",
     "theme": "dark"
