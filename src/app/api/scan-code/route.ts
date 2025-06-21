@@ -4,6 +4,7 @@ import { connectDB } from '@/lib/mongodb';
 import { Scan } from '@/lib/models';
 import { v4 as uuidv4 } from 'uuid';
 import { detectProjectType } from '@/lib/detectProjectType';
+import { askAgent } from '@/lib/aiClient';
 
 interface ScanIssue {
   type: string;
@@ -14,6 +15,8 @@ interface ScanIssue {
   originalCode?: string;
   fixedCode?: string;
   suggestion?: string;
+  confidence?: number;
+  aiDetected?: boolean;
 }
 
 interface ScanResult {
@@ -49,7 +52,7 @@ interface ExtensionResponse {
   };
 }
 
-// JavaScript/TypeScript vulnerability patterns
+// Enhanced vulnerability patterns with more comprehensive detection
 const JS_VULNERABILITIES = [
   {
     pattern: /eval\s*\(/g,
@@ -106,10 +109,35 @@ const JS_VULNERABILITIES = [
     message: 'Loading external scripts can be a security risk',
     suggestion: 'Use Content Security Policy (CSP) and validate external script sources',
     fix: (code: string) => code.replace(/<script\s+src\s*=\s*["'][^"']*["']/gi, '// FIXED: Add CSP and validate external script sources')
+  },
+  // Enhanced patterns for better detection
+  {
+    pattern: /new\s+Function\s*\(/g,
+    type: 'function-constructor',
+    severity: 'high' as const,
+    message: 'Function constructor can lead to code injection',
+    suggestion: 'Avoid Function constructor, use safer alternatives',
+    fix: (code: string) => code.replace(/new\s+Function\s*\(/g, '// FIXED: Replace Function constructor with safer alternative')
+  },
+  {
+    pattern: /setTimeout\s*\([^,]+,\s*[^)]*\)/g,
+    type: 'settimeout-injection',
+    severity: 'medium' as const,
+    message: 'setTimeout with string can lead to code injection',
+    suggestion: 'Use function references instead of strings in setTimeout',
+    fix: (code: string) => code.replace(/setTimeout\s*\(['"`][^'"`]*['"`]/g, '// FIXED: Use function reference instead of string')
+  },
+  {
+    pattern: /setInterval\s*\([^,]+,\s*[^)]*\)/g,
+    type: 'setinterval-injection',
+    severity: 'medium' as const,
+    message: 'setInterval with string can lead to code injection',
+    suggestion: 'Use function references instead of strings in setInterval',
+    fix: (code: string) => code.replace(/setInterval\s*\(['"`][^'"`]*['"`]/g, '// FIXED: Use function reference instead of string')
   }
 ];
 
-// HTML security patterns
+// Enhanced HTML security patterns
 const HTML_VULNERABILITIES = [
   {
     pattern: /<script[^>]*>/gi,
@@ -134,10 +162,35 @@ const HTML_VULNERABILITIES = [
     type: 'form-security',
     severity: 'low' as const,
     message: 'Ensure forms have proper CSRF protection and validation'
+  },
+  // Enhanced HTML patterns
+  {
+    pattern: /<object[^>]*>/gi,
+    type: 'object-tag',
+    severity: 'high' as const,
+    message: 'Object tags can execute arbitrary code, use with caution'
+  },
+  {
+    pattern: /<embed[^>]*>/gi,
+    type: 'embed-tag',
+    severity: 'high' as const,
+    message: 'Embed tags can execute arbitrary code, use with caution'
+  },
+  {
+    pattern: /javascript:/gi,
+    type: 'javascript-protocol',
+    severity: 'critical' as const,
+    message: 'javascript: protocol can execute arbitrary code'
+  },
+  {
+    pattern: /data:text\/html/gi,
+    type: 'data-uri-html',
+    severity: 'high' as const,
+    message: 'data: URIs with HTML can lead to XSS attacks'
   }
 ];
 
-// Solidity smart contract vulnerabilities
+// Enhanced Solidity smart contract vulnerabilities
 const SOLIDITY_VULNERABILITIES = [
   {
     pattern: /reentrancy/gi,
@@ -180,10 +233,35 @@ const SOLIDITY_VULNERABILITIES = [
     type: 'public-function',
     severity: 'low' as const,
     message: 'Review public functions for access control'
+  },
+  // Enhanced Solidity patterns
+  {
+    pattern: /\.send\s*\(/g,
+    type: 'send-usage',
+    severity: 'high' as const,
+    message: '.send() can fail silently, use .call() or .transfer()'
+  },
+  {
+    pattern: /\.transfer\s*\(/g,
+    type: 'transfer-usage',
+    severity: 'medium' as const,
+    message: '.transfer() has gas limitations, consider using .call()'
+  },
+  {
+    pattern: /selfdestruct\s*\(/g,
+    type: 'selfdestruct-usage',
+    severity: 'critical' as const,
+    message: 'selfdestruct can permanently delete contract and funds'
+  },
+  {
+    pattern: /suicide\s*\(/g,
+    type: 'suicide-usage',
+    severity: 'critical' as const,
+    message: 'suicide is deprecated, use selfdestruct instead'
   }
 ];
 
-// Python vulnerability patterns
+// Enhanced Python vulnerability patterns
 const PYTHON_VULNERABILITIES = [
   {
     pattern: /eval\s*\(/g,
@@ -198,90 +276,92 @@ const PYTHON_VULNERABILITIES = [
     message: 'Use of exec() is dangerous and can lead to code injection'
   },
   {
-    pattern: /subprocess\.call\s*\(/g,
-    type: 'subprocess-call',
-    severity: 'high' as const,
-    message: 'subprocess.call() can be dangerous, use subprocess.run() with proper arguments'
-  },
-  {
     pattern: /os\.system\s*\(/g,
     type: 'os-system',
     severity: 'critical' as const,
-    message: 'os.system() can lead to command injection, use subprocess.run() instead'
+    message: 'os.system() can execute arbitrary commands'
+  },
+  {
+    pattern: /subprocess\.call\s*\(/g,
+    type: 'subprocess-call',
+    severity: 'high' as const,
+    message: 'subprocess.call() can execute arbitrary commands'
   },
   {
     pattern: /pickle\.loads\s*\(/g,
-    type: 'pickle-usage',
+    type: 'pickle-loads',
     severity: 'critical' as const,
-    message: 'pickle.loads() can lead to arbitrary code execution'
+    message: 'pickle.loads() can execute arbitrary code'
   },
+  {
+    pattern: /yaml\.load\s*\(/g,
+    type: 'yaml-load',
+    severity: 'high' as const,
+    message: 'yaml.load() can execute arbitrary code, use yaml.safe_load()'
+  },
+  // Enhanced Python patterns
   {
     pattern: /input\s*\(/g,
     type: 'input-usage',
     severity: 'medium' as const,
-    message: 'input() can be dangerous, validate and sanitize user input'
+    message: 'input() can be dangerous in Python 2, use raw_input() or validate input'
   },
   {
-    pattern: /password\s*=\s*['"][^'"]*['"]/gi,
-    type: 'hardcoded-password',
+    pattern: /__import__\s*\(/g,
+    type: 'import-dynamic',
     severity: 'high' as const,
-    message: 'Hardcoded passwords are a security risk'
+    message: 'Dynamic imports can be dangerous, validate module names'
   },
   {
-    pattern: /sqlite3\.connect\s*\(/g,
-    type: 'sqlite-connection',
+    pattern: /compile\s*\(/g,
+    type: 'compile-usage',
     severity: 'medium' as const,
-    message: 'Ensure SQLite connections are properly secured'
+    message: 'compile() can be dangerous with untrusted input'
   }
 ];
 
-// Java vulnerability patterns
+// Enhanced Java vulnerability patterns
 const JAVA_VULNERABILITIES = [
   {
     pattern: /Runtime\.getRuntime\(\)\.exec\s*\(/g,
     type: 'runtime-exec',
     severity: 'critical' as const,
-    message: 'Runtime.exec() can lead to command injection'
+    message: 'Runtime.exec() can execute arbitrary commands'
   },
   {
     pattern: /ProcessBuilder\s*\(/g,
     type: 'process-builder',
     severity: 'high' as const,
-    message: 'ProcessBuilder can be dangerous, validate arguments'
+    message: 'ProcessBuilder can execute arbitrary commands'
   },
   {
     pattern: /Class\.forName\s*\(/g,
     type: 'class-forname',
     severity: 'medium' as const,
-    message: 'Class.forName() can lead to arbitrary class loading'
-  },
-  {
-    pattern: /System\.getProperty\s*\(/g,
-    type: 'system-property',
-    severity: 'low' as const,
-    message: 'System.getProperty() can expose sensitive information'
-  },
-  {
-    pattern: /password\s*=\s*['"][^'"]*['"]/gi,
-    type: 'hardcoded-password',
-    severity: 'high' as const,
-    message: 'Hardcoded passwords are a security risk'
-  },
-  {
-    pattern: /String\.format\s*\([^,]+,\s*[^)]*\)/g,
-    type: 'string-format',
-    severity: 'medium' as const,
-    message: 'String.format() can be vulnerable to format string attacks'
+    message: 'Class.forName() can load arbitrary classes'
   },
   {
     pattern: /ObjectInputStream\s*\(/g,
     type: 'object-input-stream',
     severity: 'high' as const,
-    message: 'ObjectInputStream can lead to arbitrary object deserialization'
+    message: 'ObjectInputStream can deserialize malicious objects'
+  },
+  // Enhanced Java patterns
+  {
+    pattern: /JdbcTemplate\.queryForObject\s*\(/g,
+    type: 'jdbc-query',
+    severity: 'medium' as const,
+    message: 'Ensure SQL queries are parameterized to prevent injection'
+  },
+  {
+    pattern: /Statement\s+stmt\s*=/g,
+    type: 'statement-usage',
+    severity: 'high' as const,
+    message: 'Use PreparedStatement instead of Statement to prevent SQL injection'
   }
 ];
 
-// PHP vulnerability patterns
+// Enhanced PHP vulnerability patterns
 const PHP_VULNERABILITIES = [
   {
     pattern: /eval\s*\(/g,
@@ -293,31 +373,38 @@ const PHP_VULNERABILITIES = [
     pattern: /exec\s*\(/g,
     type: 'exec-usage',
     severity: 'critical' as const,
-    message: 'exec() can lead to command injection'
+    message: 'exec() can execute arbitrary commands'
   },
   {
     pattern: /system\s*\(/g,
     type: 'system-usage',
     severity: 'critical' as const,
-    message: 'system() can lead to command injection'
+    message: 'system() can execute arbitrary commands'
   },
   {
     pattern: /shell_exec\s*\(/g,
     type: 'shell-exec',
     severity: 'critical' as const,
-    message: 'shell_exec() can lead to command injection'
+    message: 'shell_exec() can execute arbitrary commands'
   },
   {
-    pattern: /\$_GET\[/g,
-    type: 'get-usage',
-    severity: 'medium' as const,
-    message: '$_GET data should be validated and sanitized'
+    pattern: /passthru\s*\(/g,
+    type: 'passthru-usage',
+    severity: 'critical' as const,
+    message: 'passthru() can execute arbitrary commands'
+  },
+  // Enhanced PHP patterns
+  {
+    pattern: /include\s*\(\s*\$/g,
+    type: 'include-variable',
+    severity: 'high' as const,
+    message: 'Variable includes can lead to arbitrary file inclusion'
   },
   {
-    pattern: /\$_POST\[/g,
-    type: 'post-usage',
-    severity: 'medium' as const,
-    message: '$_POST data should be validated and sanitized'
+    pattern: /require\s*\(\s*\$/g,
+    type: 'require-variable',
+    severity: 'high' as const,
+    message: 'Variable requires can lead to arbitrary file inclusion'
   },
   {
     pattern: /mysql_query\s*\(/g,
@@ -327,7 +414,7 @@ const PHP_VULNERABILITIES = [
   }
 ];
 
-// Ruby vulnerability patterns
+// Enhanced Ruby vulnerability patterns
 const RUBY_VULNERABILITIES = [
   {
     pattern: /eval\s*\(/g,
@@ -339,110 +426,114 @@ const RUBY_VULNERABILITIES = [
     pattern: /system\s*\(/g,
     type: 'system-usage',
     severity: 'critical' as const,
-    message: 'system() can lead to command injection'
+    message: 'system() can execute arbitrary commands'
   },
   {
     pattern: /`[^`]*`/g,
     type: 'backtick-exec',
     severity: 'critical' as const,
-    message: 'Backtick execution can lead to command injection'
+    message: 'Backtick execution can run arbitrary commands'
   },
   {
     pattern: /Kernel\.exec\s*\(/g,
     type: 'kernel-exec',
     severity: 'critical' as const,
-    message: 'Kernel.exec() can lead to command injection'
+    message: 'Kernel.exec() can execute arbitrary commands'
+  },
+  // Enhanced Ruby patterns
+  {
+    pattern: /YAML\.load\s*\(/g,
+    type: 'yaml-load',
+    severity: 'high' as const,
+    message: 'YAML.load() can execute arbitrary code, use YAML.safe_load()'
   },
   {
-    pattern: /password\s*=\s*['"][^'"]*['"]/gi,
-    type: 'hardcoded-password',
+    pattern: /Marshal\.load\s*\(/g,
+    type: 'marshal-load',
     severity: 'high' as const,
-    message: 'Hardcoded passwords are a security risk'
+    message: 'Marshal.load() can deserialize malicious objects'
   }
 ];
 
-// Go vulnerability patterns
+// Enhanced Go vulnerability patterns
 const GO_VULNERABILITIES = [
   {
     pattern: /exec\.Command\s*\(/g,
     type: 'exec-command',
     severity: 'high' as const,
-    message: 'exec.Command() can be dangerous, validate arguments'
+    message: 'exec.Command() can execute arbitrary commands'
   },
   {
     pattern: /os\./g,
     type: 'os-usage',
     severity: 'medium' as const,
-    message: 'OS operations should be validated'
+    message: 'Review os package usage for security implications'
   },
+  // Enhanced Go patterns
   {
-    pattern: /fmt\.Sprintf\s*\([^,]+,\s*[^)]*\)/g,
-    type: 'fmt-sprintf',
+    pattern: /template\.ParseFiles\s*\(/g,
+    type: 'template-parse',
     severity: 'medium' as const,
-    message: 'fmt.Sprintf() can be vulnerable to format string attacks'
+    message: 'Ensure template files are validated to prevent path traversal'
   },
   {
-    pattern: /password\s*:=\s*['"][^'"]*['"]/gi,
-    type: 'hardcoded-password',
-    severity: 'high' as const,
-    message: 'Hardcoded passwords are a security risk'
+    pattern: /http\.Get\s*\(/g,
+    type: 'http-get',
+    severity: 'low' as const,
+    message: 'Ensure HTTP requests are made to trusted sources'
   }
 ];
 
-// Rust vulnerability patterns
+// Enhanced Rust vulnerability patterns
 const RUST_VULNERABILITIES = [
   {
     pattern: /unsafe\s*{/g,
     type: 'unsafe-block',
-    severity: 'high' as const,
+    severity: 'medium' as const,
     message: 'Unsafe blocks can lead to undefined behavior'
   },
   {
     pattern: /std::process::Command::new\s*\(/g,
     type: 'process-command',
     severity: 'high' as const,
-    message: 'Process::Command can be dangerous, validate arguments'
+    message: 'Command::new() can execute arbitrary commands'
   },
+  // Enhanced Rust patterns
   {
-    pattern: /unwrap\(\)/g,
-    type: 'unwrap-usage',
-    severity: 'medium' as const,
-    message: 'unwrap() can cause panics, handle errors properly'
-  },
-  {
-    pattern: /expect\s*\(/g,
-    type: 'expect-usage',
-    severity: 'medium' as const,
-    message: 'expect() can cause panics, handle errors properly'
+    pattern: /std::fs::read_to_string\s*\(/g,
+    type: 'fs-read',
+    severity: 'low' as const,
+    message: 'Ensure file paths are validated to prevent path traversal'
   }
 ];
 
-// C/C++ vulnerability patterns
-const C_CPP_VULNERABILITIES = [
+// Enhanced C++ vulnerability patterns
+const CPP_VULNERABILITIES = [
   {
     pattern: /system\s*\(/g,
-    type: 'system-usage',
+    type: 'system-call',
     severity: 'critical' as const,
-    message: 'system() can lead to command injection'
+    message: 'system() can execute arbitrary commands'
+  },
+  {
+    pattern: /popen\s*\(/g,
+    type: 'popen-usage',
+    severity: 'high' as const,
+    message: 'popen() can execute arbitrary commands'
   },
   {
     pattern: /strcpy\s*\(/g,
     type: 'strcpy-usage',
-    severity: 'critical' as const,
+    severity: 'high' as const,
     message: 'strcpy() is vulnerable to buffer overflows, use strncpy()'
   },
   {
     pattern: /strcat\s*\(/g,
     type: 'strcat-usage',
-    severity: 'critical' as const,
+    severity: 'high' as const,
     message: 'strcat() is vulnerable to buffer overflows, use strncat()'
   },
-  {
-    pattern: /sprintf\s*\(/g,
-    type: 'sprintf-usage',
-    severity: 'high' as const,
-    message: 'sprintf() is vulnerable to buffer overflows, use snprintf()'
-  },
+  // Enhanced C++ patterns
   {
     pattern: /gets\s*\(/g,
     type: 'gets-usage',
@@ -450,327 +541,589 @@ const C_CPP_VULNERABILITIES = [
     message: 'gets() is vulnerable to buffer overflows, use fgets()'
   },
   {
-    pattern: /malloc\s*\(/g,
-    type: 'malloc-usage',
+    pattern: /scanf\s*\(/g,
+    type: 'scanf-usage',
     severity: 'medium' as const,
-    message: 'Check malloc() return value and handle memory properly'
-  },
-  {
-    pattern: /free\s*\(/g,
-    type: 'free-usage',
-    severity: 'medium' as const,
-    message: 'Ensure proper memory management with free()'
+    message: 'scanf() can be vulnerable, use safer alternatives'
   }
 ];
 
-// C# vulnerability patterns
+// Enhanced C# vulnerability patterns
 const CSHARP_VULNERABILITIES = [
   {
     pattern: /Process\.Start\s*\(/g,
     type: 'process-start',
     severity: 'high' as const,
-    message: 'Process.Start() can be dangerous, validate arguments'
-  },
-  {
-    pattern: /Assembly\.Load\s*\(/g,
-    type: 'assembly-load',
-    severity: 'medium' as const,
-    message: 'Assembly.Load() can lead to arbitrary assembly loading'
-  },
-  {
-    pattern: /Type\.GetType\s*\(/g,
-    type: 'type-gettype',
-    severity: 'medium' as const,
-    message: 'Type.GetType() can lead to arbitrary type loading'
-  },
-  {
-    pattern: /password\s*=\s*['"][^'"]*['"]/gi,
-    type: 'hardcoded-password',
-    severity: 'high' as const,
-    message: 'Hardcoded passwords are a security risk'
+    message: 'Process.Start() can execute arbitrary commands'
   },
   {
     pattern: /SqlCommand\s*\(/g,
     type: 'sql-command',
     severity: 'medium' as const,
-    message: 'Ensure SQL commands are properly parameterized'
+    message: 'Ensure SQL commands use parameterized queries'
+  },
+  {
+    pattern: /File\.ReadAllText\s*\(/g,
+    type: 'file-read',
+    severity: 'low' as const,
+    message: 'Ensure file paths are validated to prevent path traversal'
+  },
+  // Enhanced C# patterns
+  {
+    pattern: /Assembly\.Load\s*\(/g,
+    type: 'assembly-load',
+    severity: 'medium' as const,
+    message: 'Assembly.Load() can load arbitrary assemblies'
+  },
+  {
+    pattern: /Type\.GetType\s*\(/g,
+    type: 'type-gettype',
+    severity: 'medium' as const,
+    message: 'Type.GetType() can load arbitrary types'
   }
 ];
 
 const PROJECT_TYPE = detectProjectType();
 
-function scanJavaScript(content: string): ScanIssue[] {
-  const issues: ScanIssue[] = [];
-  const lines = content.split('\n');
-  
-  JS_VULNERABILITIES.forEach(vuln => {
-    let match;
-    while ((match = vuln.pattern.exec(content)) !== null) {
-      const lineNumber = content.substring(0, match.index).split('\n').length;
-      const originalLine = lines[lineNumber - 1]?.trim() || '';
-      issues.push({
+// New function to generate AI-based fixes and validate findings
+async function generateAIFix(code: string, fileType: string, issueType: string, issueMessage: string): Promise<{ fixedCode?: string, suggestion?: string }> {
+  try {
+    const prompt = `
+      A static analysis tool flagged the following code snippet from a ${fileType} file with a potential "${issueType}" vulnerability.
+      
+      Vulnerability message: "${issueMessage}"
+      
+      Code Snippet:
+      \`\`\`${fileType.toLowerCase()}
+      ${code}
+      \`\`\`
+      
+      Your tasks:
+      1. First, critically determine if this is a **true positive** security vulnerability. Do not flag common, safe programming practices as vulnerabilities. For example, a simple opening \`<script>\` tag without any attributes or malicious content is not a vulnerability on its own. Be very critical to avoid false positives.
+      2. If it is a **true positive**, provide a secure code replacement ("fixedCode"). The fix should be minimal and directly address the vulnerability.
+      3. Provide a brief, clear explanation for the fix ("suggestion").
+      
+      Return your response ONLY in this JSON format:
+      {
+        "isVulnerability": boolean, // true ONLY if it is a real security risk, otherwise false
+        "suggestion": "Your explanation here. If it is a false positive, explain why.",
+        "fixedCode": "Your fixed code snippet here. If it is a false positive, return the original code."
+      }
+    `;
+
+    const aiResponse = await askAgent(prompt, code);
+    
+    // Add the issue only if the AI confirms it's a vulnerability and provides a different, valid fix.
+    if (aiResponse && aiResponse.isVulnerability && aiResponse.fixedCode && aiResponse.fixedCode !== code) {
+      return {
+        fixedCode: aiResponse.fixedCode,
+        suggestion: aiResponse.suggestion,
+      };
+    }
+    
+    // If AI thinks it's a false positive or provides no meaningful fix, return nothing to filter it out.
+    return {};
+  } catch (error) {
+    console.error('AI fix generation failed:', error);
+    return {};
+  }
+}
+
+// AI-powered vulnerability detection function
+async function detectVulnerabilitiesWithAI(content: string, fileType: string): Promise<ScanIssue[]> {
+  try {
+    const prompt = `
+      Analyze this ${fileType} code for security vulnerabilities:
+      
+      ${content}
+      
+      Look for:
+      1. SQL Injection vulnerabilities
+      2. XSS (Cross-Site Scripting) vulnerabilities
+      3. Code injection vulnerabilities
+      4. Command injection vulnerabilities
+      5. Path traversal vulnerabilities
+      6. Insecure deserialization
+      7. Insecure direct object references
+      8. Security misconfigurations
+      9. Sensitive data exposure
+      10. Missing access controls
+      11. Cryptographic failures
+      12. Input validation issues
+      13. Output encoding issues
+      14. Authentication bypass
+      15. Authorization flaws
+      
+      For each vulnerability found, provide:
+      - Type of vulnerability
+      - Severity (critical/high/medium/low)
+      - Line number (if possible)
+      - Description of the issue
+      - Suggested fix
+      - Confidence level (0-100)
+      
+      Return the results in this JSON format, ensuring you do not flag false positives:
+      {
+        "vulnerabilities": [
+          {
+            "type": "sql-injection",
+            "severity": "critical",
+            "line": 15,
+            "message": "SQL injection vulnerability detected",
+            "suggestion": "Use parameterized queries",
+            "confidence": 95,
+            "originalCode": "const query = \`SELECT * FROM users WHERE id = \${userId}\`",
+            "fixedCode": "const query = 'SELECT * FROM users WHERE id = ?'"
+          }
+        ]
+      }
+    `;
+
+    const aiResponse = await askAgent(prompt, content);
+    
+    if (aiResponse.vulnerabilities && Array.isArray(aiResponse.vulnerabilities)) {
+      return aiResponse.vulnerabilities.map((vuln: {
+        type: string;
+        severity: 'low' | 'medium' | 'high' | 'critical';
+        line?: number;
+        message: string;
+        suggestion?: string;
+        confidence?: number;
+        originalCode?: string;
+        fixedCode?: string;
+      }) => ({
         type: vuln.type,
         severity: vuln.severity,
         message: vuln.message,
-        line: lineNumber,
-        code: originalLine,
-        originalCode: originalLine,
-        fixedCode: vuln.fix(originalLine),
-        suggestion: vuln.suggestion
-      });
+        line: vuln.line,
+        code: vuln.originalCode,
+        originalCode: vuln.originalCode,
+        fixedCode: vuln.fixedCode,
+        suggestion: vuln.suggestion,
+        confidence: vuln.confidence,
+        aiDetected: true
+      }));
     }
-  });
+    
+    return [];
+  } catch (error) {
+    console.error('AI vulnerability detection failed:', error);
+    return [];
+  }
+}
 
-  // Additional checks
-  if (content.includes('password') && content.includes('localStorage')) {
-    issues.push({
-      type: 'password-storage-pattern',
-      severity: 'critical',
-      message: 'Password storage pattern detected in localStorage',
-      line: content.split('\n').findIndex(line => line.includes('password'))
-    });
+// Enhanced scanning functions with AI integration
+async function scanJavaScript(content: string): Promise<ScanIssue[]> {
+  const issues: ScanIssue[] = [];
+  const lines = content.split('\n');
+
+  // Traditional regex-based scanning with AI validation
+  for (const vuln of JS_VULNERABILITIES) {
+    let match;
+    const regex = new RegExp(vuln.pattern); // Create new RegExp object for each iteration
+    while ((match = regex.exec(content)) !== null) {
+      const lineNumber = content.substring(0, match.index).split('\n').length;
+      const lineContent = lines[lineNumber - 1]?.trim() || '';
+      
+      // Use AI to validate and generate a fix
+      const aiFix = await generateAIFix(lineContent, 'JavaScript', vuln.type, vuln.message);
+
+      if (aiFix.fixedCode) { 
+        issues.push({
+          type: vuln.type,
+          severity: vuln.severity,
+          message: vuln.message,
+          line: lineNumber,
+          code: lineContent,
+          originalCode: lineContent,
+          fixedCode: aiFix.fixedCode,
+          suggestion: aiFix.suggestion || vuln.message,
+          confidence: 95, // Higher confidence as it's AI validated
+          aiDetected: true // Mark as AI-assisted
+        });
+      }
+    }
   }
 
+  // AI-powered scanning for complex vulnerabilities
+  const aiIssues = await detectVulnerabilitiesWithAI(content, 'JavaScript');
+  issues.push(...aiIssues);
+
   return issues;
 }
 
-function scanHTML(content: string): ScanIssue[] {
+async function scanHTML(content: string): Promise<ScanIssue[]> {
   const issues: ScanIssue[] = [];
   const lines = content.split('\n');
-  
-  HTML_VULNERABILITIES.forEach(vuln => {
-    let match;
-    while ((match = vuln.pattern.exec(content)) !== null) {
-      const lineNumber = content.substring(0, match.index).split('\n').length;
-      issues.push({
-        type: vuln.type,
-        severity: vuln.severity,
-        message: vuln.message,
-        line: lineNumber,
-        code: lines[lineNumber - 1]?.trim()
-      });
-    }
-  });
 
-  // Check for missing security headers
-  if (!content.includes('Content-Security-Policy')) {
-    issues.push({
-      type: 'missing-csp',
-      severity: 'medium',
-      message: 'Content Security Policy (CSP) header is missing'
-    });
+  // Traditional regex-based scanning with AI validation
+  for (const vuln of HTML_VULNERABILITIES) {
+    let match;
+    const regex = new RegExp(vuln.pattern);
+    while ((match = regex.exec(content)) !== null) {
+      const lineNumber = content.substring(0, match.index).split('\n').length;
+      const lineContent = lines[lineNumber - 1]?.trim() || '';
+
+      // For HTML, regex is less reliable for fixes, so we use AI
+      const aiFix = await generateAIFix(lineContent, 'HTML', vuln.type, vuln.message);
+      if (aiFix.fixedCode) { 
+        issues.push({
+          type: vuln.type,
+          severity: vuln.severity,
+          message: vuln.message,
+          line: lineNumber,
+          code: lineContent,
+          originalCode: lineContent,
+          fixedCode: aiFix.fixedCode,
+          suggestion: aiFix.suggestion || vuln.message,
+          confidence: 95,
+          aiDetected: true 
+        });
+      }
+    }
   }
 
+  // AI-powered scanning for complex vulnerabilities
+  const aiIssues = await detectVulnerabilitiesWithAI(content, 'HTML');
+  issues.push(...aiIssues);
+
   return issues;
 }
 
-function scanSolidity(content: string): ScanIssue[] {
+async function scanSolidity(content: string): Promise<ScanIssue[]> {
   const issues: ScanIssue[] = [];
   const lines = content.split('\n');
-  
-  SOLIDITY_VULNERABILITIES.forEach(vuln => {
-    let match;
-    while ((match = vuln.pattern.exec(content)) !== null) {
-      const lineNumber = content.substring(0, match.index).split('\n').length;
-      issues.push({
-        type: vuln.type,
-        severity: vuln.severity,
-        message: vuln.message,
-        line: lineNumber,
-        code: lines[lineNumber - 1]?.trim()
-      });
-    }
-  });
 
-  // Check for common Solidity security issues
-  if (content.includes('transfer(') && !content.includes('require(')) {
-    issues.push({
-      type: 'transfer-without-check',
-      severity: 'high',
-      message: 'Transfer without checking return value - use SafeERC20'
-    });
+  // Traditional regex-based scanning with AI validation
+  for (const vuln of SOLIDITY_VULNERABILITIES) {
+    let match;
+    const regex = new RegExp(vuln.pattern);
+    while ((match = regex.exec(content)) !== null) {
+      const lineNumber = content.substring(0, match.index).split('\n').length;
+      const lineContent = lines[lineNumber - 1]?.trim() || '';
+      
+      const aiFix = await generateAIFix(lineContent, 'Solidity', vuln.type, vuln.message);
+      if (aiFix.fixedCode) {
+        issues.push({
+          type: vuln.type,
+          severity: vuln.severity,
+          message: vuln.message,
+          line: lineNumber,
+          code: lineContent,
+          originalCode: lineContent,
+          fixedCode: aiFix.fixedCode,
+          suggestion: aiFix.suggestion || vuln.message,
+          confidence: 95,
+          aiDetected: true
+        });
+      }
+    }
   }
 
-  if (content.includes('selfdestruct(')) {
-    issues.push({
-      type: 'selfdestruct-usage',
-      severity: 'critical',
-      message: 'selfdestruct can lead to loss of funds'
-    });
+  // AI-powered scanning for complex vulnerabilities
+  const aiIssues = await detectVulnerabilitiesWithAI(content, 'Solidity');
+  issues.push(...aiIssues);
+
+  return issues;
+}
+
+async function scanPython(content: string): Promise<ScanIssue[]> {
+  const issues: ScanIssue[] = [];
+  const lines = content.split('\n');
+
+  // Traditional regex-based scanning with AI validation
+  for (const vuln of PYTHON_VULNERABILITIES) {
+    let match;
+    const regex = new RegExp(vuln.pattern);
+    while ((match = regex.exec(content)) !== null) {
+      const lineNumber = content.substring(0, match.index).split('\n').length;
+      const lineContent = lines[lineNumber - 1]?.trim() || '';
+
+      const aiFix = await generateAIFix(lineContent, 'Python', vuln.type, vuln.message);
+      if (aiFix.fixedCode) {
+        issues.push({
+          type: vuln.type,
+          severity: vuln.severity,
+          message: vuln.message,
+          line: lineNumber,
+          code: lineContent,
+          originalCode: lineContent,
+          fixedCode: aiFix.fixedCode,
+          suggestion: aiFix.suggestion || vuln.message,
+          confidence: 95,
+          aiDetected: true
+        });
+      }
+    }
   }
 
+  // AI-powered scanning for complex vulnerabilities
+  const aiIssues = await detectVulnerabilitiesWithAI(content, 'Python');
+  issues.push(...aiIssues);
+
   return issues;
 }
 
-function scanPython(content: string): ScanIssue[] {
+async function scanJava(content: string): Promise<ScanIssue[]> {
   const issues: ScanIssue[] = [];
   const lines = content.split('\n');
-  
-  PYTHON_VULNERABILITIES.forEach(vuln => {
+
+  // Traditional regex-based scanning with AI validation
+  for (const vuln of JAVA_VULNERABILITIES) {
     let match;
-    while ((match = vuln.pattern.exec(content)) !== null) {
+    const regex = new RegExp(vuln.pattern);
+    while ((match = regex.exec(content)) !== null) {
       const lineNumber = content.substring(0, match.index).split('\n').length;
-      issues.push({
-        type: vuln.type,
-        severity: vuln.severity,
-        message: vuln.message,
-        line: lineNumber,
-        code: lines[lineNumber - 1]?.trim()
-      });
+      const lineContent = lines[lineNumber - 1]?.trim() || '';
+      
+      const aiFix = await generateAIFix(lineContent, 'Java', vuln.type, vuln.message);
+      if (aiFix.fixedCode) {
+        issues.push({
+          type: vuln.type,
+          severity: vuln.severity,
+          message: vuln.message,
+          line: lineNumber,
+          code: lineContent,
+          originalCode: lineContent,
+          fixedCode: aiFix.fixedCode,
+          suggestion: aiFix.suggestion || vuln.message,
+          confidence: 95,
+          aiDetected: true
+        });
+      }
     }
-  });
+  }
+
+  // AI-powered scanning for complex vulnerabilities
+  const aiIssues = await detectVulnerabilitiesWithAI(content, 'Java');
+  issues.push(...aiIssues);
 
   return issues;
 }
 
-function scanJava(content: string): ScanIssue[] {
+async function scanPHP(content: string): Promise<ScanIssue[]> {
   const issues: ScanIssue[] = [];
   const lines = content.split('\n');
-  
-  JAVA_VULNERABILITIES.forEach(vuln => {
+
+  // Traditional regex-based scanning with AI validation
+  for (const vuln of PHP_VULNERABILITIES) {
     let match;
-    while ((match = vuln.pattern.exec(content)) !== null) {
+    const regex = new RegExp(vuln.pattern);
+    while ((match = regex.exec(content)) !== null) {
       const lineNumber = content.substring(0, match.index).split('\n').length;
-      issues.push({
-        type: vuln.type,
-        severity: vuln.severity,
-        message: vuln.message,
-        line: lineNumber,
-        code: lines[lineNumber - 1]?.trim()
-      });
+      const lineContent = lines[lineNumber - 1]?.trim() || '';
+      
+      const aiFix = await generateAIFix(lineContent, 'PHP', vuln.type, vuln.message);
+      if (aiFix.fixedCode) {
+        issues.push({
+          type: vuln.type,
+          severity: vuln.severity,
+          message: vuln.message,
+          line: lineNumber,
+          code: lineContent,
+          originalCode: lineContent,
+          fixedCode: aiFix.fixedCode,
+          suggestion: aiFix.suggestion || vuln.message,
+          confidence: 95,
+          aiDetected: true
+        });
+      }
     }
-  });
+  }
+
+  // AI-powered scanning for complex vulnerabilities
+  const aiIssues = await detectVulnerabilitiesWithAI(content, 'PHP');
+  issues.push(...aiIssues);
 
   return issues;
 }
 
-function scanPHP(content: string): ScanIssue[] {
+async function scanRuby(content: string): Promise<ScanIssue[]> {
   const issues: ScanIssue[] = [];
   const lines = content.split('\n');
-  
-  PHP_VULNERABILITIES.forEach(vuln => {
+
+  // Traditional regex-based scanning with AI validation
+  for (const vuln of RUBY_VULNERABILITIES) {
     let match;
-    while ((match = vuln.pattern.exec(content)) !== null) {
+    const regex = new RegExp(vuln.pattern);
+    while ((match = regex.exec(content)) !== null) {
       const lineNumber = content.substring(0, match.index).split('\n').length;
-      issues.push({
-        type: vuln.type,
-        severity: vuln.severity,
-        message: vuln.message,
-        line: lineNumber,
-        code: lines[lineNumber - 1]?.trim()
-      });
+      const lineContent = lines[lineNumber - 1]?.trim() || '';
+      
+      const aiFix = await generateAIFix(lineContent, 'Ruby', vuln.type, vuln.message);
+      if (aiFix.fixedCode) {
+        issues.push({
+          type: vuln.type,
+          severity: vuln.severity,
+          message: vuln.message,
+          line: lineNumber,
+          code: lineContent,
+          originalCode: lineContent,
+          fixedCode: aiFix.fixedCode,
+          suggestion: aiFix.suggestion || vuln.message,
+          confidence: 95,
+          aiDetected: true
+        });
+      }
     }
-  });
+  }
+
+  // AI-powered scanning for complex vulnerabilities
+  const aiIssues = await detectVulnerabilitiesWithAI(content, 'Ruby');
+  issues.push(...aiIssues);
 
   return issues;
 }
 
-function scanRuby(content: string): ScanIssue[] {
+async function scanGo(content: string): Promise<ScanIssue[]> {
   const issues: ScanIssue[] = [];
   const lines = content.split('\n');
-  
-  RUBY_VULNERABILITIES.forEach(vuln => {
+
+  // Traditional regex-based scanning with AI validation
+  for (const vuln of GO_VULNERABILITIES) {
     let match;
-    while ((match = vuln.pattern.exec(content)) !== null) {
+    const regex = new RegExp(vuln.pattern);
+    while ((match = regex.exec(content)) !== null) {
       const lineNumber = content.substring(0, match.index).split('\n').length;
-      issues.push({
-        type: vuln.type,
-        severity: vuln.severity,
-        message: vuln.message,
-        line: lineNumber,
-        code: lines[lineNumber - 1]?.trim()
-      });
+      const lineContent = lines[lineNumber - 1]?.trim() || '';
+      
+      const aiFix = await generateAIFix(lineContent, 'Go', vuln.type, vuln.message);
+      if (aiFix.fixedCode) {
+        issues.push({
+          type: vuln.type,
+          severity: vuln.severity,
+          message: vuln.message,
+          line: lineNumber,
+          code: lineContent,
+          originalCode: lineContent,
+          fixedCode: aiFix.fixedCode,
+          suggestion: aiFix.suggestion || vuln.message,
+          confidence: 95,
+          aiDetected: true
+        });
+      }
     }
-  });
+  }
+
+  // AI-powered scanning for complex vulnerabilities
+  const aiIssues = await detectVulnerabilitiesWithAI(content, 'Go');
+  issues.push(...aiIssues);
 
   return issues;
 }
 
-function scanGo(content: string): ScanIssue[] {
+async function scanRust(content: string): Promise<ScanIssue[]> {
   const issues: ScanIssue[] = [];
   const lines = content.split('\n');
-  
-  GO_VULNERABILITIES.forEach(vuln => {
+
+  // Traditional regex-based scanning with AI validation
+  for (const vuln of RUST_VULNERABILITIES) {
     let match;
-    while ((match = vuln.pattern.exec(content)) !== null) {
+    const regex = new RegExp(vuln.pattern);
+    while ((match = regex.exec(content)) !== null) {
       const lineNumber = content.substring(0, match.index).split('\n').length;
-      issues.push({
-        type: vuln.type,
-        severity: vuln.severity,
-        message: vuln.message,
-        line: lineNumber,
-        code: lines[lineNumber - 1]?.trim()
-      });
+      const lineContent = lines[lineNumber - 1]?.trim() || '';
+      
+      const aiFix = await generateAIFix(lineContent, 'Rust', vuln.type, vuln.message);
+      if (aiFix.fixedCode) {
+        issues.push({
+          type: vuln.type,
+          severity: vuln.severity,
+          message: vuln.message,
+          line: lineNumber,
+          code: lineContent,
+          originalCode: lineContent,
+          fixedCode: aiFix.fixedCode,
+          suggestion: aiFix.suggestion || vuln.message,
+          confidence: 95,
+          aiDetected: true
+        });
+      }
     }
-  });
+  }
+
+  // AI-powered scanning for complex vulnerabilities
+  const aiIssues = await detectVulnerabilitiesWithAI(content, 'Rust');
+  issues.push(...aiIssues);
 
   return issues;
 }
 
-function scanRust(content: string): ScanIssue[] {
+async function scanCpp(content: string): Promise<ScanIssue[]> {
   const issues: ScanIssue[] = [];
   const lines = content.split('\n');
-  
-  RUST_VULNERABILITIES.forEach(vuln => {
+
+  // Traditional regex-based scanning with AI validation
+  for (const vuln of CPP_VULNERABILITIES) {
     let match;
-    while ((match = vuln.pattern.exec(content)) !== null) {
+    const regex = new RegExp(vuln.pattern);
+    while ((match = regex.exec(content)) !== null) {
       const lineNumber = content.substring(0, match.index).split('\n').length;
-      issues.push({
-        type: vuln.type,
-        severity: vuln.severity,
-        message: vuln.message,
-        line: lineNumber,
-        code: lines[lineNumber - 1]?.trim()
-      });
+      const lineContent = lines[lineNumber - 1]?.trim() || '';
+      
+      const aiFix = await generateAIFix(lineContent, 'C++', vuln.type, vuln.message);
+      if (aiFix.fixedCode) {
+        issues.push({
+          type: vuln.type,
+          severity: vuln.severity,
+          message: vuln.message,
+          line: lineNumber,
+          code: lineContent,
+          originalCode: lineContent,
+          fixedCode: aiFix.fixedCode,
+          suggestion: aiFix.suggestion || vuln.message,
+          confidence: 95,
+          aiDetected: true
+        });
+      }
     }
-  });
+  }
+
+  // AI-powered scanning for complex vulnerabilities
+  const aiIssues = await detectVulnerabilitiesWithAI(content, 'C++');
+  issues.push(...aiIssues);
 
   return issues;
 }
 
-function scanCpp(content: string): ScanIssue[] {
+async function scanCSharp(content: string): Promise<ScanIssue[]> {
   const issues: ScanIssue[] = [];
   const lines = content.split('\n');
-  
-  C_CPP_VULNERABILITIES.forEach(vuln => {
+
+  // Traditional regex-based scanning with AI validation
+  for (const vuln of CSHARP_VULNERABILITIES) {
     let match;
-    while ((match = vuln.pattern.exec(content)) !== null) {
+    const regex = new RegExp(vuln.pattern);
+    while ((match = regex.exec(content)) !== null) {
       const lineNumber = content.substring(0, match.index).split('\n').length;
-      issues.push({
-        type: vuln.type,
-        severity: vuln.severity,
-        message: vuln.message,
-        line: lineNumber,
-        code: lines[lineNumber - 1]?.trim()
-      });
+      const lineContent = lines[lineNumber - 1]?.trim() || '';
+      
+      const aiFix = await generateAIFix(lineContent, 'C#', vuln.type, vuln.message);
+      if (aiFix.fixedCode) {
+        issues.push({
+          type: vuln.type,
+          severity: vuln.severity,
+          message: vuln.message,
+          line: lineNumber,
+          code: lineContent,
+          originalCode: lineContent,
+          fixedCode: aiFix.fixedCode,
+          suggestion: aiFix.suggestion || vuln.message,
+          confidence: 95,
+          aiDetected: true
+        });
+      }
     }
-  });
+  }
+
+  // AI-powered scanning for complex vulnerabilities
+  const aiIssues = await detectVulnerabilitiesWithAI(content, 'C#');
+  issues.push(...aiIssues);
 
   return issues;
 }
 
-function scanCSharp(content: string): ScanIssue[] {
-  const issues: ScanIssue[] = [];
-  const lines = content.split('\n');
-  
-  CSHARP_VULNERABILITIES.forEach(vuln => {
-    let match;
-    while ((match = vuln.pattern.exec(content)) !== null) {
-      const lineNumber = content.substring(0, match.index).split('\n').length;
-      issues.push({
-        type: vuln.type,
-        severity: vuln.severity,
-        message: vuln.message,
-        line: lineNumber,
-        code: lines[lineNumber - 1]?.trim()
-      });
-    }
-  });
-
-  return issues;
-}
-
-function scanFile(file: { file: string; content: string; environment?: string }): ScanResult {
+async function scanFile(file: { file: string; content: string; environment?: string }): Promise<ScanResult> {
   const { file: filename, content, environment } = file;
   let issues: ScanIssue[] = [];
 
@@ -788,38 +1141,39 @@ function scanFile(file: { file: string; content: string; environment?: string })
     }
   }
 
-  // Use environment to scope rules
+  // Use environment to scope rules and AI detection
   if (filename.endsWith('.js') || filename.endsWith('.ts')) {
     // Always treat as server-side for Node.js projects
-    issues = scanJavaScript(content).filter(issue => 
+    const jsIssues = await scanJavaScript(content);
+    issues = jsIssues.filter(issue => 
       // Only include env-exposure for client-side
       !(issue.type === 'env-exposure')
     );
   } else if (filename.endsWith('.html')) {
     if (env === 'client' || env === 'unknown') {
-      issues = scanHTML(content);
+      issues = await scanHTML(content);
     } // else skip HTML rules for server
   } else if (filename.endsWith('.sol')) {
-    issues = scanSolidity(content);
+    issues = await scanSolidity(content);
   } else if (filename.endsWith('.py')) {
-    issues = scanPython(content);
+    issues = await scanPython(content);
   } else if (filename.endsWith('.java')) {
-    issues = scanJava(content);
+    issues = await scanJava(content);
   } else if (filename.endsWith('.php')) {
-    issues = scanPHP(content);
+    issues = await scanPHP(content);
   } else if (filename.endsWith('.rb')) {
-    issues = scanRuby(content);
+    issues = await scanRuby(content);
   } else if (filename.endsWith('.go')) {
-    issues = scanGo(content);
+    issues = await scanGo(content);
   } else if (filename.endsWith('.rs')) {
-    issues = scanRust(content);
+    issues = await scanRust(content);
   } else if (filename.endsWith('.cpp')) {
-    issues = scanCpp(content);
+    issues = await scanCpp(content);
   } else if (filename.endsWith('.cs')) {
-    issues = scanCSharp(content);
+    issues = await scanCSharp(content);
   } else {
-    // Generic file scan
-    issues = scanJavaScript(content);
+    // Generic file scan with AI
+    issues = await scanJavaScript(content);
   }
 
   const summary = {
@@ -877,8 +1231,8 @@ export async function POST(req: NextRequest) {
   await scan.save();
 
   try {
-    // Scan each file
-    const results = body.files.map(scanFile);
+    // Scan each file with enhanced AI detection
+    const results = await Promise.all(body.files.map(scanFile));
     
     // Convert to extension format
     const vulnerabilities: ExtensionVulnerability[] = [];

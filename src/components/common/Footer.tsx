@@ -1,6 +1,7 @@
 import { motion } from "framer-motion"
 import { Github, Twitter } from "lucide-react"
 import Image from "next/image"
+import myImage from "@/assets/kavachai.jpg";
 
 const Footer = () => {
   return (
@@ -14,7 +15,13 @@ const Footer = () => {
               viewport={{ once: true }}
               className="flex items-center space-x-2 mb-4 md:mb-0"
             >
-               <Image src={'/logo.webp'} width={100} height={100} className="h-10 w-10 rounded-full" alt="logo" />
+               <Image
+                src={myImage}
+                alt="Description of image"
+                width={42} // or set layout="responsive" for dynamic sizing
+                height={42}
+                className="rounded-full"
+              />
               <span className="text-lg font-bold glow-text">Kavach.AI</span>
             </motion.div>
 

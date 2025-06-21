@@ -40,6 +40,11 @@ for (const jsonBlock of jsonMatches) {
     const cleaned = jsonBlock.replace(/```json|```/g, "").trim();
     const parsed = JSON.parse(cleaned);
 
+    // Handle the new, specific format from our fix generator
+    if (typeof parsed.isVulnerability === 'boolean') {
+        return parsed; // Return the object directly
+    }
+
     // Merge intelligently based on keys
     if (parsed.audit_results) {
       const results =
@@ -78,8 +83,14 @@ for (const jsonBlock of jsonMatches) {
     if (Array.isArray(parsed.recommendations)) {
       merged.recommendations.push(...parsed.recommendations);
     }
-  } catch (err) {
-    console.warn("❌ Failed to parse a block:", err);
+  } catch {
+    // If the main parsing fails, try a generic parse
+    try {
+        const cleaned = jsonBlock.replace(/```json|```/g, "").trim();
+        return JSON.parse(cleaned);
+    } catch {
+        console.warn("❌ Failed to parse a block:", err);
+    }
   }
 }
   return merged;
