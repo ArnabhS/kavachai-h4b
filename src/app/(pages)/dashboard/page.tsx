@@ -5,6 +5,8 @@ import React, { useState, useEffect } from "react";
 type Web2Result = Record<string, unknown> | { error: string } | null;
 type Web3Result = Record<string, unknown> | { error: string } | null;
 type LoggerResult = Record<string, unknown> | { error: string } | null;
+type WalletSecurityResult = Record<string, unknown> | { error: string } | null;
+type NFTSecurityResult = Record<string, unknown> | { error: string } | null;
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("web2");
@@ -14,6 +16,10 @@ const Dashboard = () => {
   const [web3Result, setWeb3Result] = useState<Web3Result>(null);
   const [loggerLoading, setLoggerLoading] = useState(false);
   const [loggerResult, setLoggerResult] = useState<LoggerResult>(null);
+  const [walletSecurityLoading, setWalletSecurityLoading] = useState(false);
+  const [walletSecurityResult, setWalletSecurityResult] = useState<WalletSecurityResult>(null);
+  const [nftSecurityLoading, setNftSecurityLoading] = useState(false);
+  const [nftSecurityResult, setNftSecurityResult] = useState<NFTSecurityResult>(null);
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [apiKeyLoading, setApiKeyLoading] = useState(false);
   const [apiKeyError, setApiKeyError] = useState<string | null>(null);
@@ -108,6 +114,18 @@ const Dashboard = () => {
           onClick={() => setActiveTab("logger")}
         >
           Logger Agent
+        </button>
+        <button
+          className={`px-4 py-2 rounded ${activeTab === "wallet-security" ? "bg-blue-600 text-white" : "bg-white border"}`}
+          onClick={() => setActiveTab("wallet-security")}
+        >
+          Wallet Security
+        </button>
+        <button
+          className={`px-4 py-2 rounded ${activeTab === "nft-security" ? "bg-blue-600 text-white" : "bg-white border"}`}
+          onClick={() => setActiveTab("nft-security")}
+        >
+          NFT Security
         </button>
       </div>
       <div>
@@ -257,6 +275,106 @@ const Dashboard = () => {
               </div>
             )}
             <p className="mt-4 text-gray-600">Analyze logs for suspicious activity using AI.</p>
+          </div>
+        )}
+        {activeTab === "wallet-security" && (
+          <div id="wallet-security">
+            <h2 className="text-xl font-semibold mb-4">Wallet Security</h2>
+            <form
+              className="mb-4"
+              onSubmit={async (e: React.FormEvent<HTMLFormElement>) => {
+                e.preventDefault();
+                const form = e.currentTarget;
+                const walletAddress = (form.elements.namedItem("walletAddress") as HTMLInputElement).value;
+                setWalletSecurityLoading(true);
+                setWalletSecurityResult(null);
+                try {
+                  const res = await fetch("/api/wallet-security", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ walletAddress }),
+                  });
+                  const data = await res.json();
+                  setWalletSecurityResult(data);
+                } catch {
+                  setWalletSecurityResult({ error: "Failed to analyze wallet security." });
+                }
+                setWalletSecurityLoading(false);
+              }}
+            >
+              <input
+                type="text"
+                name="walletAddress"
+                placeholder="Enter wallet address"
+                className="border p-2 rounded w-80 mr-2"
+                required
+              />
+              <button
+                type="submit"
+                className="bg-blue-600 text-white px-4 py-2 rounded"
+                disabled={walletSecurityLoading}
+              >
+                {walletSecurityLoading ? "Analyzing..." : "Analyze"}
+              </button>
+            </form>
+            {walletSecurityResult && (
+              <div className="bg-white p-4 rounded shadow">
+                <pre className="whitespace-pre-wrap text-sm">
+                  {JSON.stringify(walletSecurityResult, null, 2)}
+                </pre>
+              </div>
+            )}
+            <p className="mt-4 text-gray-600">Analyze wallet security using AI.</p>
+          </div>
+        )}
+        {activeTab === "nft-security" && (
+          <div id="nft-security">
+            <h2 className="text-xl font-semibold mb-4">NFT Security</h2>
+            <form
+              className="mb-4"
+              onSubmit={async (e: React.FormEvent<HTMLFormElement>) => {
+                e.preventDefault();
+                const form = e.currentTarget;
+                const nftContractAddress = (form.elements.namedItem("nftContractAddress") as HTMLInputElement).value;
+                setNftSecurityLoading(true);
+                setNftSecurityResult(null);
+                try {
+                  const res = await fetch("/api/nft-security", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ nftContractAddress }),
+                  });
+                  const data = await res.json();
+                  setNftSecurityResult(data);
+                } catch {
+                  setNftSecurityResult({ error: "Failed to analyze NFT security." });
+                }
+                setNftSecurityLoading(false);
+              }}
+            >
+              <input
+                type="text"
+                name="nftContractAddress"
+                placeholder="Enter NFT contract address"
+                className="border p-2 rounded w-80 mr-2"
+                required
+              />
+              <button
+                type="submit"
+                className="bg-blue-600 text-white px-4 py-2 rounded"
+                disabled={nftSecurityLoading}
+              >
+                {nftSecurityLoading ? "Analyzing..." : "Analyze"}
+              </button>
+            </form>
+            {nftSecurityResult && (
+              <div className="bg-white p-4 rounded shadow">
+                <pre className="whitespace-pre-wrap text-sm">
+                  {JSON.stringify(nftSecurityResult, null, 2)}
+                </pre>
+              </div>
+            )}
+            <p className="mt-4 text-gray-600">Analyze NFT security using AI.</p>
           </div>
         )}
       </div>

@@ -1,7 +1,7 @@
-import Link from "next/link";
+
 import { motion } from "framer-motion";
 import Image from "next/image";
-
+import { UserButton } from '@civic/auth/react'
 const Navbar = () => {
   return (
     <div>
@@ -18,17 +18,17 @@ const Navbar = () => {
                     </motion.div>
 
 
-                    <Link href="/login">   
+                   
                     <motion.div
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="flex items-center space-x-6"
+                      className="flex items-center space-x-6 "
                     >
                       {/* <Link href="/login" className="cyber-button-outline px-4 py-2 text-sm"> */}
-                        Login
+                        <UserButton className="text-white hover:text-white"/>
                       {/* </Link> */}
                     </motion.div>
-                    </Link> 
+                   
                   </div>
                 </div>
               </nav>
