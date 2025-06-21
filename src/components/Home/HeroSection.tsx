@@ -54,10 +54,8 @@ const HeroSection = () => {
         style={{ position: 'absolute', inset: 0, zIndex: 0 }}
       />
 
-      {/* 🌐 Gradient & Decorative Layers */}
       <div className="absolute inset-0 bg-gradient-radial from-cyber-accent/10 via-transparent to-transparent z-0" />
 
-      {/* ✨ Floating Motion Dots */}
       <motion.div
         animate={{ y: [0, -20, 0] }}
         transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
@@ -74,15 +72,13 @@ const HeroSection = () => {
         className="absolute bottom-32 left-32 w-2 h-2 bg-cyber-purple rounded-full opacity-50 z-10"
       />
 
-      {/* 🔤 Hero Content */}
-
       <div className="relative z-20 w-[90%] mx-auto ">
 
         <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-gray-900/20 via-black to-gray-900/20"></div>
                 <div className="container mx-auto px-4 py-8 lg:py-16 relative z-10">
                   <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
-                    {/* Left Side - Content */}
+                    
                     <motion.div
                       className="space-y-8"
                       initial={{ opacity: 0, x: -50 }}

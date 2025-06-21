@@ -7,6 +7,8 @@ import Navbar from "@/components/common/Navbar";
 import Footer from "@/components/common/Footer";
 import HowItWorks from "@/components/Home/HowItWorks";
 import InnovationGrid from "@/components/Home/InnovationGrid";
+import Features from "@/components/Home/Features";
+import FAQ from "@/components/Home/Faq";
 
 export default function HomePage() {
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -33,6 +35,9 @@ export default function HomePage() {
       <HeroSection />
       <HowItWorks />
       <InnovationGrid />
+      <Features />
+      <FAQ />
+      
 
 
       {/* Tech Stack Section */}
