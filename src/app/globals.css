@@ -24,3 +24,35 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+.cyber-card {
+  background: color-mix(in srgb, var(--cyber-blue) 50%, transparent);
+  backdrop-filter: blur(12px);
+  border: 1px solid color-mix(in srgb, var(--cyber-accent) 20%, transparent);
+  border-radius: var(--radius);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cyber-button {
+  background: linear-gradient(135deg, var(--cyber-accent), var(--cyber-neon));
+  color: var(--cyber-dark);
+  font-weight: 600;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateY(0);
+}
+
+/* .glow-text {
+  background: linear-gradient(135deg, var(--cyber-accent), var(--cyber-neon));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 200% 200%;
+  animation: glow-animation 3s ease-in-out infinite alternate;
+} */
+
+
+
