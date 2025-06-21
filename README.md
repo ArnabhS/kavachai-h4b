@@ -109,7 +109,7 @@ To get a local copy up and running, follow these simple steps.
 
 1.  **Clone the repo:**
     ```sh
-    git clone https://github.com/your-repo/kavachai.git
+    git clone https://github.com/ArnabhS/kavachai-h4b
     cd kavachai
     ```
 
@@ -123,7 +123,9 @@ To get a local copy up and running, follow these simple steps.
     ```
     GEMINI_API_KEY=your_gemini_api_key
     MONGODB_URI=your_mongodb_connection_string
-    # Add other environment variables as needed
+    CIVIC_AUTH_API_KEY=your_api_key
+    ETHERSCAN_API_KEY=your_api_key
+    POLYGONSCAN_API_KEY=your_api_key
     ```
 
 4.  **Run the development server:**
