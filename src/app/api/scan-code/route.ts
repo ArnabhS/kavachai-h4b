@@ -3,6 +3,7 @@ import { ApiKeyModel } from '@/lib/models';
 import { connectDB } from '@/lib/mongodb';
 import { Scan } from '@/lib/models';
 import { v4 as uuidv4 } from 'uuid';
+import { detectProjectType } from '@/lib/detectProjectType';
 
 interface ScanIssue {
   type: string;
@@ -496,6 +497,8 @@ const CSHARP_VULNERABILITIES = [
   }
 ];
 
+const PROJECT_TYPE = detectProjectType();
+
 function scanJavaScript(content: string): ScanIssue[] {
   const issues: ScanIssue[] = [];
   const lines = content.split('\n');
@@ -771,21 +774,29 @@ function scanFile(file: { file: string; content: string; environment?: string })
   const { file: filename, content, environment } = file;
   let issues: ScanIssue[] = [];
 
+  let env = environment;
+  if ((filename.endsWith('.js') || filename.endsWith('.ts')) && !env) {
+    if (PROJECT_TYPE === 'next') {
+      // Next.js: could be both, but default to 'server' unless in /pages or /app/client
+      env = 'server';
+    } else if (PROJECT_TYPE === 'react') {
+      env = 'client';
+    } else if (PROJECT_TYPE === 'node') {
+      env = 'server';
+    } else {
+      env = 'server';
+    }
+  }
+
   // Use environment to scope rules
   if (filename.endsWith('.js') || filename.endsWith('.ts')) {
-    if (environment === 'client') {
-      // Only run client-side JS rules (XSS, DOM, etc.)
-      issues = scanJavaScript(content);
-    } else if (environment === 'server') {
-      // Only run server-side JS rules (no XSS, but SSRF, etc. - TODO: add more server rules)
-      // For now, run only a subset (skip XSS/DOM rules)
-      issues = scanJavaScript(content).filter(issue => !['innerhtml-usage', 'document-write', 'external-script'].includes(issue.type));
-    } else {
-      // Unknown, run all for now
-      issues = scanJavaScript(content);
-    }
+    // Always treat as server-side for Node.js projects
+    issues = scanJavaScript(content).filter(issue => 
+      // Only include env-exposure for client-side
+      !(issue.type === 'env-exposure')
+    );
   } else if (filename.endsWith('.html')) {
-    if (environment === 'client' || environment === 'unknown') {
+    if (env === 'client' || env === 'unknown') {
       issues = scanHTML(content);
     } // else skip HTML rules for server
   } else if (filename.endsWith('.sol')) {

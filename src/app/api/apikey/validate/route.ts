@@ -4,11 +4,27 @@ import { connectDB } from '@/lib/mongodb';
 
 export async function POST(req: NextRequest) {
   try {
-    const { apiKey } = await req.json();
+    let apiKey: string | null = null;
+    
+    // First try to get API key from Authorization header
+    const authHeader = req.headers.get('authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      apiKey = authHeader.replace('Bearer ', '');
+    } else {
+      // Fallback to request body
+      try {
+        const body = await req.json();
+        apiKey = body.apiKey || null;
+      } catch {
+        // If JSON parsing fails, try to get from query params or other sources
+        const url = new URL(req.url);
+        apiKey = url.searchParams.get('apiKey');
+      }
+    }
     
     if (!apiKey) {
       return NextResponse.json({ 
-        message: 'API key is required.',
+        message: 'API key is required. Please provide it in Authorization header (Bearer token) or request body.',
         valid: false 
       }, { status: 400 });
     }
