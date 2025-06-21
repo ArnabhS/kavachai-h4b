@@ -2,39 +2,18 @@
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Globe, FileText, Code, ScrollText, Shield, AlertTriangle, CheckCircle, Clock } from "lucide-react"
+import { Shield, AlertTriangle, CheckCircle, Clock } from "lucide-react"
 import { WebScrapingTab } from "@/components/dashboard/WebScrappingTab"
 import { SmartContractsTab } from "@/components/dashboard/SmartContractTabs"
 import { VSCodeExtensionTab } from "@/components/dashboard/VsCodeExtension"
 import { AuditLogTab } from "@/components/dashboard/AuditLogTab"
 import { StatsCard } from "@/components/dashboard/StatsCard"
 import { useScanStats } from "@/lib/hooks/useScanStats"
-
-const tabs = [
-  {
-    id: "web-scraping",
-    label: "Web Scraping",
-    icon: <Globe className="h-5 w-5" />,
-  },
-  {
-    id: "smart-contracts",
-    label: "Smart Contracts",
-    icon: <FileText className="h-5 w-5" />,
-  },
-  {
-    id: "vscode-extension",
-    label: "VS Code Extension",
-    icon: <Code className="h-5 w-5" />,
-  },
-  {
-    id: "audit-log",
-    label: "Audit Log",
-    icon: <ScrollText className="h-5 w-5" />,
-  },
-]
+import { AppSidebar } from "@/components/dashboard/AppSidebar"
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("web-scraping")
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const { stats, loading, refetch } = useScanStats()
 
   const handleScanComplete = () => {
@@ -124,34 +103,54 @@ export default function DashboardPage() {
   }
 
   return (
-      <div className="space-y-6 py-8 w-[96%] mx-auto">
-        {/* Header */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-          <h1 className="text-3xl font-bold text-white mb-2">Security Dashboard</h1>
-          <p className="text-gray-400">Monitor and manage your Web3 security infrastructure</p>
-        </motion.div>
-
-        {/* Stats Cards */}
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
+    <div className="flex h-screen bg-black overflow-hidden">
+      {/* Sidebar */}
+      <AppSidebar
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        isOpen={sidebarOpen}
+        onToggle={() => setSidebarOpen((open) => !open)}
+      />
+      {/* Main Content */}
+      <div className="flex-1 ml-0 md:ml-8 overflow-y-auto h-screen relative transition-all duration-300">
+        {/* Mobile sidebar toggle button */}
+        <button
+          className="md:hidden fixed top-4 right-4 z-50 bg-gray-900 border border-gray-800 rounded-lg p-2 text-gray-300 hover:text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          onClick={() => setSidebarOpen(true)}
+          aria-label="Open sidebar"
         >
-          {getStats().map((stat, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 + index * 0.1 }}
-            >
-              <StatsCard {...stat} />
-            </motion.div>
-          ))}
-        </motion.div>
+          <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <div className="space-y-6 py-8 w-[90%] md: lg:w-[94%] mx-auto">
+          {/* Header */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <h1 className="text-xl lg:text-3xl font-bold text-white mb-2">Security Dashboard</h1>
+            <p className="text-gray-400 text-sm md:text-base">Monitor and manage your Web3 security infrastructure</p>
+          </motion.div>
 
-        {/* Tab Navigation */}
-        <motion.div
+          {/* Stats Cards */}
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 "
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
+            {getStats().map((stat, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.1 + index * 0.1 }}
+              >
+                <StatsCard {...stat} />
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Tab Navigation */}
+          {/* <motion.div
           className="border-b border-gray-800"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -175,20 +174,23 @@ export default function DashboardPage() {
               </motion.button>
             ))}
           </nav>
-        </motion.div>
+        </motion.div> */}
 
-        {/* Tab Content */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            {renderTabContent()}
-          </motion.div>
-        </AnimatePresence>
+
+          {/* Tab Content */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              {renderTabContent()}
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
+    </div>
   )
 }
