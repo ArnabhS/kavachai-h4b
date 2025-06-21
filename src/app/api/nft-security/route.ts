@@ -42,7 +42,18 @@ interface NFTSecurityResult {
 }
 
 // Analyze NFT contract using real blockchain data
-async function analyzeNFTContract(contractAddress: string): Promise<any> {
+async function analyzeNFTContract(contractAddress: string): Promise<{
+  standard: string;
+  verified: boolean;
+  proxyContract: boolean;
+  upgradeable: boolean;
+  accessControl: {
+    owner: string;
+    hasRoleBasedAccess: boolean;
+    roles: string[];
+  };
+  contractName?: string;
+}> {
   try {
     const contractInfo = await getEthereumContractInfo(contractAddress);
     
@@ -103,12 +114,28 @@ async function analyzeNFTContract(contractAddress: string): Promise<any> {
 }
 
 // Check for common NFT security vulnerabilities using real data
-async function checkNFTSecurityRisks(contractAddress: string, contractData: any): Promise<any[]> {
-  const risks = [];
+type Risk = {
+  type: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  description: string;
+  evidence?: string;
+  recommendation?: string;
+};
+
+async function checkNFTSecurityRisks(
+  contractAddress: string,
+  contractData: Awaited<ReturnType<typeof analyzeNFTContract>>
+): Promise<Risk[]> {
+  const risks: Risk[] = [];
   
   try {
     // Get contract transactions to analyze patterns
-    const transactions = await getEthereumTransactions(contractAddress);
+    // Fix: Add type for transactions
+    const transactions: Array<{
+      methodName?: string;
+      gas: string;
+      value: string;
+    }> = await getEthereumTransactions(contractAddress);
     
     // Check for reentrancy vulnerabilities in transaction patterns
     const hasReentrancyPattern = transactions.some(tx => 
@@ -200,7 +227,12 @@ async function checkNFTSecurityRisks(contractAddress: string, contractData: any)
 }
 
 // Check metadata security using real contract data
-async function checkMetadataSecurity(contractAddress: string): Promise<any> {
+async function checkMetadataSecurity(contractAddress: string): Promise<{
+  centralized: boolean;
+  ipfsEnabled: boolean;
+  metadataMutable: boolean;
+  baseURISet: boolean;
+}> {
   try {
     const contractInfo = await getEthereumContractInfo(contractAddress);
     const sourceCode = contractInfo?.sourceCode || '';
@@ -229,7 +261,13 @@ async function checkMetadataSecurity(contractAddress: string): Promise<any> {
 }
 
 // Check economic security using real transaction data
-async function checkEconomicSecurity(contractAddress: string): Promise<any> {
+async function checkEconomicSecurity(contractAddress: string): Promise<{
+  royaltyPercentage: number;
+  royaltyRecipient: string;
+  maxSupply: number;
+  mintingActive: boolean;
+  priceControl: boolean;
+}> {
   try {
     const transactions = await getEthereumTransactions(contractAddress);
     
@@ -263,13 +301,18 @@ async function checkEconomicSecurity(contractAddress: string): Promise<any> {
 }
 
 // Check for metadata-specific risks using real data
-function checkMetadataRisks(metadataData: any): any[] {
+function checkMetadataRisks(metadataData: {
+  centralized: boolean;
+  ipfsEnabled: boolean;
+  metadataMutable: boolean;
+  baseURISet: boolean;
+}): Risk[] {
   const risks = [];
   
   if (metadataData.centralized) {
     risks.push({
       type: 'centralized_metadata',
-      severity: 'medium',
+      severity: 'medium' as const,
       description: 'Metadata is stored on centralized servers',
       evidence: 'HTTP URLs detected in metadata',
       recommendation: 'Use IPFS or decentralized storage for metadata'
@@ -279,7 +322,7 @@ function checkMetadataRisks(metadataData: any): any[] {
   if (metadataData.metadataMutable) {
     risks.push({
       type: 'mutable_metadata',
-      severity: 'high',
+      severity: 'high' as const,
       description: 'NFT metadata can be changed after minting',
       evidence: 'Metadata URI can be updated by contract owner',
       recommendation: 'Ensure metadata immutability for true ownership'
@@ -289,7 +332,7 @@ function checkMetadataRisks(metadataData: any): any[] {
   if (!metadataData.baseURISet) {
     risks.push({
       type: 'no_base_uri',
-      severity: 'low',
+      severity: 'low' as const,
       description: 'No base URI set for token metadata',
       evidence: 'Individual token URIs must be set manually',
       recommendation: 'Set a base URI for easier metadata management'
@@ -395,4 +438,4 @@ export async function POST(req: NextRequest) {
       error: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
-} 
+}
