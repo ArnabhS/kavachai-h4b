@@ -24,6 +24,10 @@ type LogAnalysisResult = {
   error?: string
 } | null
 
+interface AuditLogTabProps {
+  onScanComplete?: () => void
+}
+
 const recentLogs = [
   {
     id: 1,
@@ -59,7 +63,7 @@ const recentLogs = [
   },
 ]
 
-export function AuditLogTab() {
+export function AuditLogTab({ onScanComplete }: AuditLogTabProps) {
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState<LogAnalysisResult>(null)
   const [logs, setLogs] = useState("")
@@ -78,8 +82,12 @@ export function AuditLogTab() {
       })
       const result = await res.json()
       setData(result)
+      // Trigger stats refresh
+      if (onScanComplete) {
+        onScanComplete()
+      }
     } catch (error) {
-      setData({ error: "Failed to analyze logs. Please try again." })
+      setData({ error: error instanceof Error ? error.message : "Failed to analyze logs. Please try again." })
     }
 
     setLoading(false)

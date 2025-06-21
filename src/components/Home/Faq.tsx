@@ -41,7 +41,7 @@ export default function FAQ() {
         <motion.div className="text-center mb-16" variants={itemVariants}>
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">Frequently Asked Questions</h2>
           <p className="text-gray-500 max-w-2xl mx-auto text-lg">
-            Everything you need to know about Kadak.AI&#39;s decentralized security platform
+            Everything you need to know about Kavach.ai&#39;s decentralized security platform
           </p>
         </motion.div>
 

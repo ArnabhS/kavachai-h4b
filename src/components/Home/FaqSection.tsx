@@ -6,9 +6,9 @@ import { Plus, Minus } from "lucide-react"
 
 const faqs = [
   {
-    question: "How does Kadak.AI detect Web3 threats in real-time?",
+    question: "How does Kavach.ai detect Web3 threats in real-time?",
     answer:
-      "Kadak.AI uses advanced machine learning algorithms combined with a decentralized network of security nodes to monitor blockchain transactions, smart contracts, and DeFi protocols 24/7. Our AI models are trained on historical attack patterns and continuously updated by civic-verified security experts.",
+      "Kavach.ai uses advanced machine learning algorithms combined with a decentralized network of security nodes to monitor blockchain transactions, smart contracts, and DeFi protocols 24/7. Our AI models are trained on historical attack patterns and continuously updated by civic-verified security experts.",
   },
   {
     question: "What makes civic-verified experts different from traditional security audits?",
@@ -16,19 +16,19 @@ const faqs = [
       "Our civic-verified experts are blockchain security professionals who have been vetted through our decentralized reputation system. They provide real-time validation of AI findings, reducing false positives and adding contextual analysis that pure AI cannot provide. This hybrid approach ensures both speed and accuracy.",
   },
   {
-    question: "How quickly can Kadak.AI respond to detected threats?",
+    question: "How quickly can Kavach.ai respond to detected threats?",
     answer:
-      "Kadak.AI provides instant alerts within seconds of threat detection. Our system can automatically trigger protective measures like pausing smart contract functions or alerting your team through multiple channels including Slack, Discord, email, and SMS.",
+      "Kavach.ai provides instant alerts within seconds of threat detection. Our system can automatically trigger protective measures like pausing smart contract functions or alerting your team through multiple channels including Slack, Discord, email, and SMS.",
   },
   {
-    question: "Is Kadak.AI compatible with existing Web3 infrastructure?",
+    question: "Is Kavach.ai compatible with existing Web3 infrastructure?",
     answer:
-      "Yes, Kadak.AI is designed for seamless integration with existing Web3 infrastructure. We support all major blockchains, DeFi protocols, and development frameworks. Our APIs and SDKs make integration straightforward for any Web3 project.",
+      "Yes, Kavach.ai is designed for seamless integration with existing Web3 infrastructure. We support all major blockchains, DeFi protocols, and development frameworks. Our APIs and SDKs make integration straightforward for any Web3 project.",
   },
   {
-    question: "What types of threats can Kadak.AI detect?",
+    question: "What types of threats can Kavach.ai detect?",
     answer:
-      "Kadak.AI detects a wide range of Web3 threats including smart contract vulnerabilities, flash loan attacks, reentrancy attacks, price manipulation, governance attacks, bridge exploits, and suspicious transaction patterns. Our detection capabilities are continuously expanding.",
+      "Kavach.ai detects a wide range of Web3 threats including smart contract vulnerabilities, flash loan attacks, reentrancy attacks, price manipulation, governance attacks, bridge exploits, and suspicious transaction patterns. Our detection capabilities are continuously expanding.",
   },
   {
     question: "How does the decentralized security model work?",

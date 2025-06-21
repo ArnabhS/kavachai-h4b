@@ -28,7 +28,11 @@ type ScanResult = {
   error?: string
 } | null
 
-export function WebScrapingTab() {
+interface WebScrapingTabProps {
+  onScanComplete?: () => void
+}
+
+export function WebScrapingTab({ onScanComplete }: WebScrapingTabProps) {
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState<ScanResult>(null)
   const [url, setUrl] = useState("")
@@ -47,8 +51,12 @@ export function WebScrapingTab() {
       })
       const result = await res.json()
       setData(result)
+      // Trigger stats refresh
+      if (onScanComplete) {
+        onScanComplete()
+      }
     } catch (error) {
-      setData({ error: "Failed to scan website. Please try again." })
+      setData({ error: error instanceof Error ? error.message : "Failed to scan website. Please try again." })
     }
 
     setLoading(false)

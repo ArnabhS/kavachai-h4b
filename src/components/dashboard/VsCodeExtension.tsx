@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Code, Download, Settings, Key, Copy, RefreshCw } from "lucide-react"
+import { Code, Download, Settings, Key, Copy, RefreshCw, Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export function VSCodeExtensionTab() {
@@ -10,6 +10,7 @@ export function VSCodeExtensionTab() {
   const [apiKeyLoading, setApiKeyLoading] = useState(false)
   const [apiKeyError, setApiKeyError] = useState<string | null>(null)
   const [copySuccess, setCopySuccess] = useState(false)
+  const [showApiKey, setShowApiKey] = useState(false)
 
   // Fetch API key on mount
   useEffect(() => {
@@ -70,6 +71,15 @@ export function VSCodeExtensionTab() {
     }
   }
 
+  const toggleApiKeyVisibility = () => {
+    setShowApiKey(!showApiKey)
+  }
+
+  const getMaskedApiKey = (key: string) => {
+    if (key.length <= 8) return '*'.repeat(key.length)
+    return key.substring(0, 4) + '*'.repeat(key.length - 8) + key.substring(key.length - 4)
+  }
+
   return (
     <div className="space-y-6">
       {/* API Key Management */}
@@ -85,7 +95,7 @@ export function VSCodeExtensionTab() {
           <div>
             <h3 className="text-lg font-semibold text-white">VS Code Extension API Key</h3>
             <p className="text-gray-400 text-sm">
-              Use this API key to connect the Kadak.AI VS Code extension to your account
+              Use this API key to connect the Kavach.ai VS Code extension to your account
             </p>
           </div>
         </div>
@@ -101,12 +111,21 @@ export function VSCodeExtensionTab() {
           <div className="space-y-3">
             <div className="flex items-center space-x-2">
               <input
-                type="text"
-                value={apiKey}
+                type={showApiKey ? "text" : "password"}
+                value={showApiKey ? apiKey : getMaskedApiKey(apiKey)}
                 readOnly
                 className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white font-mono text-sm focus:outline-none"
-                onFocus={(e) => e.target.select()}
+                onFocus={(e) => showApiKey && e.target.select()}
               />
+              <Button
+                onClick={toggleApiKeyVisibility}
+                variant="outline"
+                size="sm"
+                className="border-gray-700 text-gray-300 hover:bg-gray-800"
+                title={showApiKey ? "Hide API Key" : "Show API Key"}
+              >
+                {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
               <Button
                 onClick={copyToClipboard}
                 variant="outline"
@@ -117,6 +136,11 @@ export function VSCodeExtensionTab() {
                 {copySuccess ? "Copied!" : "Copy"}
               </Button>
             </div>
+            {!showApiKey && (
+              <p className="text-xs text-gray-500">
+                Click the eye icon to reveal the full API key
+              </p>
+            )}
           </div>
         ) : null}
 
@@ -143,7 +167,7 @@ export function VSCodeExtensionTab() {
             <Code className="h-8 w-8 text-blue-400" />
           </div>
           <div>
-            <h3 className="text-xl font-semibold text-white">Kadak.AI VS Code Extension</h3>
+            <h3 className="text-xl font-semibold text-white">Kavach.ai VS Code Extension</h3>
             <p className="text-gray-400">Real-time security analysis in your IDE</p>
           </div>
         </div>
@@ -197,19 +221,19 @@ export function VSCodeExtensionTab() {
               <span className="flex-shrink-0 w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
                 1
               </span>
-              <span>Install the Kadak.AI extension from the VS Code marketplace</span>
+              <span>Install the Kavach.ai extension from the VS Code marketplace</span>
             </li>
             <li className="flex items-start space-x-2">
               <span className="flex-shrink-0 w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
                 2
               </span>
-              <span>Copy your API key from above</span>
+              <span>Copy your API key from above (click the eye icon to reveal)</span>
             </li>
             <li className="flex items-start space-x-2">
               <span className="flex-shrink-0 w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
                 3
               </span>
-              <span>Open VS Code settings and paste the API key in Kadak.AI extension settings</span>
+              <span>Open VS Code settings and paste the API key in Kavach.ai extension settings</span>
             </li>
             <li className="flex items-start space-x-2">
               <span className="flex-shrink-0 w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">

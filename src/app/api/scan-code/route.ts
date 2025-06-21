@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getApiKey } from '@/lib/models';
 import { getUser } from '@civic/auth-web3/nextjs';
+import { connectDB } from '@/lib/mongodb';
+import { Scan } from '@/lib/models';
+import { v4 as uuidv4 } from 'uuid';
 
  
 
@@ -787,21 +790,63 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: 'Invalid or missing API key.' }, { status: 401 });
   }
 
-  // Scan each file
-  const results = body.files.map(scanFile);
-  
-  // Overall summary
-  const overallSummary = results.reduce((acc: { total: number; critical: number; high: number; medium: number; low: number }, result: ScanResult) => ({
-    total: acc.total + result.summary.total,
-    critical: acc.critical + result.summary.critical,
-    high: acc.high + result.summary.high,
-    medium: acc.medium + result.summary.medium,
-    low: acc.low + result.summary.low
-  }), { total: 0, critical: 0, high: 0, medium: 0, low: 0 });
-
-  return NextResponse.json({ 
-    results,
-    summary: overallSummary,
-    scanTime: new Date().toISOString()
+  // Create scan record
+  await connectDB();
+  const scanId = uuidv4();
+  const scan = new Scan({
+    id: scanId,
+    type: 'smart-contracts', // VS Code extension scans are typically for smart contracts
+    status: 'active',
+    startedAt: new Date(),
+    userId: user.id || user.email,
+    metadata: { 
+      logSource: 'vscode-extension',
+      fileCount: body.files.length
+    }
   });
+  await scan.save();
+
+  try {
+    // Scan each file
+    const results = body.files.map(scanFile);
+    
+    // Overall summary
+    const overallSummary = results.reduce((acc: { total: number; critical: number; high: number; medium: number; low: number }, result: ScanResult) => ({
+      total: acc.total + result.summary.total,
+      critical: acc.critical + result.summary.critical,
+      high: acc.high + result.summary.high,
+      medium: acc.medium + result.summary.medium,
+      low: acc.low + result.summary.low
+    }), { total: 0, critical: 0, high: 0, medium: 0, low: 0 });
+
+    const response = { 
+      results,
+      summary: overallSummary,
+      scanTime: new Date().toISOString()
+    };
+
+    // Update scan record as completed
+    await Scan.findOneAndUpdate(
+      { id: scanId },
+      { 
+        status: 'completed',
+        completedAt: new Date(),
+        results: response
+      }
+    );
+
+    return NextResponse.json(response);
+  } catch (error) {
+    // Update scan record as failed
+    await Scan.findOneAndUpdate(
+      { id: scanId },
+      { 
+        status: 'failed',
+        completedAt: new Date(),
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }
+    );
+
+    throw error;
+  }
 } 

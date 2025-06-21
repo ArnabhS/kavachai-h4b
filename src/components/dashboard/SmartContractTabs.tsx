@@ -22,7 +22,11 @@ type ContractScanResult = {
   error?: string
 } | null
 
-export function SmartContractsTab() {
+interface SmartContractsTabProps {
+  onScanComplete?: () => void
+}
+
+export function SmartContractsTab({ onScanComplete }: SmartContractsTabProps) {
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState<ContractScanResult>(null)
   const [contract, setContract] = useState("")
@@ -41,8 +45,12 @@ export function SmartContractsTab() {
       })
       const result = await res.json()
       setData(result)
+      // Trigger stats refresh
+      if (onScanComplete) {
+        onScanComplete()
+      }
     } catch (error) {
-      setData({ error: "Failed to scan smart contract. Please try again." })
+      setData({ error: error instanceof Error ? error.message : "Failed to scan smart contract. Please try again." })
     }
 
     setLoading(false)
