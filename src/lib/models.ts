@@ -16,6 +16,8 @@ const ApiKeySchema = new Schema<ApiKeyDoc>({
 
 const ApiKeyModel: Model<ApiKeyDoc> = mongoose.models.ApiKey || mongoose.model<ApiKeyDoc>('ApiKey', ApiKeySchema);
 
+export { ApiKeyModel };
+
 export async function getApiKey(userId: string): Promise<ApiKeyDoc | null> {
   await connectDB();
   return ApiKeyModel.findOne({ userId });

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Code, Download, Settings, Key, Copy, RefreshCw, Eye, EyeOff } from "lucide-react"
+import { Code, Download, Settings, Key, Copy, RefreshCw, Eye, EyeOff, Search, User, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export function VSCodeExtensionTab() {
@@ -11,6 +11,17 @@ export function VSCodeExtensionTab() {
   const [apiKeyError, setApiKeyError] = useState<string | null>(null)
   const [copySuccess, setCopySuccess] = useState(false)
   const [showApiKey, setShowApiKey] = useState(false)
+  
+  // API Key Validation states
+  const [validationApiKey, setValidationApiKey] = useState("")
+  const [validationResult, setValidationResult] = useState<{
+    valid: boolean;
+    userId: string;
+    createdAt: string;
+    message: string;
+  } | null>(null)
+  const [validating, setValidating] = useState(false)
+  const [validationError, setValidationError] = useState<string | null>(null)
 
   // Fetch API key on mount
   useEffect(() => {
@@ -49,6 +60,40 @@ export function VSCodeExtensionTab() {
       setApiKeyError("Failed to regenerate API key.")
     }
     setApiKeyLoading(false)
+  }
+
+  // Validate API key
+  const validateApiKey = async () => {
+    if (!validationApiKey.trim()) {
+      setValidationError("Please enter an API key to validate")
+      return
+    }
+
+    setValidating(true)
+    setValidationError(null)
+    setValidationResult(null)
+
+    try {
+      const res = await fetch("/api/apikey/validate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ apiKey: validationApiKey.trim() }),
+      })
+
+      const data = await res.json()
+
+      if (res.ok && data.valid) {
+        setValidationResult(data)
+      } else {
+        setValidationError(data.message || "Invalid API key")
+      }
+    } catch {
+      setValidationError("Failed to validate API key")
+    } finally {
+      setValidating(false)
+    }
   }
 
   const copyToClipboard = async () => {
@@ -155,12 +200,83 @@ export function VSCodeExtensionTab() {
         </Button>
       </motion.div>
 
+      {/* API Key Validation */}
+      <motion.div
+        className="bg-gradient-to-br from-gray-900 to-black border border-gray-800 rounded-xl p-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        <div className="flex items-center space-x-3 mb-4">
+          <div className="p-2 bg-green-500/10 rounded-lg">
+            <Search className="h-6 w-6 text-green-400" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-white">Validate API Key</h3>
+            <p className="text-gray-400 text-sm">
+              Check which user an API key belongs to (useful for extension troubleshooting)
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <input
+              type="password"
+              value={validationApiKey}
+              onChange={(e) => setValidationApiKey(e.target.value)}
+              placeholder="Enter API key to validate..."
+              className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white font-mono text-sm focus:outline-none focus:border-blue-500"
+              onKeyPress={(e) => e.key === 'Enter' && validateApiKey()}
+            />
+            <Button
+              onClick={validateApiKey}
+              disabled={validating || !validationApiKey.trim()}
+              className="bg-green-600 hover:bg-green-700 text-white"
+              size="sm"
+            >
+              <Search className={`h-4 w-4 mr-2 ${validating ? "animate-spin" : ""}`} />
+              {validating ? "Validating..." : "Validate"}
+            </Button>
+          </div>
+
+          {validationError && (
+            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+              <p className="text-red-400 text-sm">{validationError}</p>
+            </div>
+          )}
+
+          {validationResult && (
+            <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                <span className="text-green-400 font-medium">Valid API Key</span>
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center space-x-2">
+                  <User className="h-4 w-4 text-gray-400" />
+                  <span className="text-gray-300">User ID: </span>
+                  <span className="text-white font-mono">{validationResult.userId}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Calendar className="h-4 w-4 text-gray-400" />
+                  <span className="text-gray-300">Created: </span>
+                  <span className="text-white">
+                    {new Date(validationResult.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </motion.div>
+
       {/* Extension Info */}
       <motion.div
         className="bg-gradient-to-br from-gray-900 to-black border border-gray-800 rounded-xl p-8"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
+        transition={{ delay: 0.2 }}
       >
         <div className="flex items-center space-x-4 mb-6">
           <div className="p-3 bg-blue-500/10 rounded-lg">

@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getApiKey } from '@/lib/models';
-import { getUser } from '@civic/auth-web3/nextjs';
+import { ApiKeyModel } from '@/lib/models';
 import { connectDB } from '@/lib/mongodb';
 import { Scan } from '@/lib/models';
 import { v4 as uuidv4 } from 'uuid';
-
- 
 
 interface ScanIssue {
   type: string;
@@ -13,6 +10,9 @@ interface ScanIssue {
   message: string;
   line?: number;
   code?: string;
+  originalCode?: string;
+  fixedCode?: string;
+  suggestion?: string;
 }
 
 interface ScanResult {
@@ -27,49 +27,84 @@ interface ScanResult {
   };
 }
 
+interface ExtensionVulnerability {
+  file: string;
+  line: number;
+  severity: 'high' | 'medium' | 'low';
+  type: string;
+  description: string;
+  suggestion: string;
+  originalCode: string;
+  fixedCode: string;
+}
+
+interface ExtensionResponse {
+  vulnerabilities: ExtensionVulnerability[];
+  summary: {
+    total: number;
+    high: number;
+    medium: number;
+    low: number;
+  };
+}
+
 // JavaScript/TypeScript vulnerability patterns
 const JS_VULNERABILITIES = [
   {
     pattern: /eval\s*\(/g,
     type: 'eval-usage',
     severity: 'critical' as const,
-    message: 'Use of eval() is dangerous and can lead to code injection'
+    message: 'Use of eval() is dangerous and can lead to code injection',
+    suggestion: 'Replace eval() with safer alternatives like JSON.parse() or Function constructor with proper validation',
+    fix: (code: string) => code.replace(/eval\s*\(/g, '// FIXED: Replace eval() with safer alternative')
   },
   {
     pattern: /innerHTML\s*=/g,
     type: 'innerhtml-usage',
     severity: 'high' as const,
-    message: 'innerHTML can lead to XSS attacks, use textContent instead'
+    message: 'innerHTML can lead to XSS attacks, use textContent instead',
+    suggestion: 'Use textContent or createElement for safe DOM manipulation',
+    fix: (code: string) => code.replace(/innerHTML\s*=/g, 'textContent =')
   },
   {
     pattern: /document\.write\s*\(/g,
     type: 'document-write',
     severity: 'high' as const,
-    message: 'document.write() can lead to XSS attacks'
+    message: 'document.write() can lead to XSS attacks',
+    suggestion: 'Use DOM manipulation methods like appendChild or innerHTML with proper sanitization',
+    fix: (code: string) => code.replace(/document\.write\s*\(/g, '// FIXED: Use DOM manipulation instead of document.write()')
   },
   {
     pattern: /localStorage\.setItem\s*\([^,]+,\s*[^)]*password[^)]*\)/gi,
     type: 'password-storage',
     severity: 'critical' as const,
-    message: 'Storing passwords in localStorage is insecure'
+    message: 'Storing passwords in localStorage is insecure',
+    suggestion: 'Never store passwords in localStorage. Use secure authentication methods.',
+    fix: (code: string) => code.replace(/localStorage\.setItem\s*\([^,]+,\s*[^)]*password[^)]*\)/gi, '// FIXED: Remove password storage from localStorage')
   },
   {
     pattern: /console\.log\s*\([^)]*password[^)]*\)/gi,
     type: 'password-logging',
     severity: 'high' as const,
-    message: 'Logging passwords is a security risk'
+    message: 'Logging passwords is a security risk',
+    suggestion: 'Remove password logging or use secure logging methods',
+    fix: (code: string) => code.replace(/console\.log\s*\([^)]*password[^)]*\)/gi, '// FIXED: Remove password logging')
   },
   {
     pattern: /process\.env\.\w+/g,
     type: 'env-exposure',
     severity: 'medium' as const,
-    message: 'Environment variables should not be exposed in client-side code'
+    message: 'Environment variables should not be exposed in client-side code',
+    suggestion: 'Move environment variables to server-side or use build-time configuration',
+    fix: (code: string) => code.replace(/process\.env\.\w+/g, '// FIXED: Remove client-side env variable exposure')
   },
   {
     pattern: /<script\s+src\s*=\s*["'][^"']*["']/gi,
     type: 'external-script',
     severity: 'medium' as const,
-    message: 'Loading external scripts can be a security risk'
+    message: 'Loading external scripts can be a security risk',
+    suggestion: 'Use Content Security Policy (CSP) and validate external script sources',
+    fix: (code: string) => code.replace(/<script\s+src\s*=\s*["'][^"']*["']/gi, '// FIXED: Add CSP and validate external script sources')
   }
 ];
 
@@ -469,12 +504,16 @@ function scanJavaScript(content: string): ScanIssue[] {
     let match;
     while ((match = vuln.pattern.exec(content)) !== null) {
       const lineNumber = content.substring(0, match.index).split('\n').length;
+      const originalLine = lines[lineNumber - 1]?.trim() || '';
       issues.push({
         type: vuln.type,
         severity: vuln.severity,
         message: vuln.message,
         line: lineNumber,
-        code: lines[lineNumber - 1]?.trim()
+        code: originalLine,
+        originalCode: originalLine,
+        fixedCode: vuln.fix(originalLine),
+        suggestion: vuln.suggestion
       });
     }
   });
@@ -775,30 +814,37 @@ export async function POST(req: NextRequest) {
   if (!contentType.includes('application/json')) {
     return NextResponse.json({ message: 'Invalid content type.' }, { status: 400 });
   }
+  
   const body = await req.json();
   if (!Array.isArray(body.files)) {
     return NextResponse.json({ message: 'Missing files array.' }, { status: 400 });
   }
-  const user = await getUser();
-  // Authenticate API key
+
+  // Get API key from Authorization header
   const authHeader = req.headers.get('authorization');
-  if(!user){
-    return NextResponse.json({ message: 'User not found.' }, { status: 404 });
-  }
-  const doc = await getApiKey(user?.id)
-  if (!authHeader || !doc || authHeader !== `Bearer ${doc.apiKey}`) {
-    return NextResponse.json({ message: 'Invalid or missing API key.' }, { status: 401 });
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return NextResponse.json({ message: 'Missing or invalid Authorization header.' }, { status: 401 });
   }
 
-  // Create scan record
+  const apiKey = authHeader.replace('Bearer ', '');
+  
+  // Find user from API key
   await connectDB();
+  const apiKeyDoc = await ApiKeyModel.findOne({ apiKey });
+  if (!apiKeyDoc) {
+    return NextResponse.json({ message: 'Invalid API key.' }, { status: 401 });
+  }
+
+  const userId = apiKeyDoc.userId;
+
+  // Create scan record
   const scanId = uuidv4();
   const scan = new Scan({
     id: scanId,
     type: 'smart-contracts', // VS Code extension scans are typically for smart contracts
     status: 'active',
     startedAt: new Date(),
-    userId: user.id || user.email,
+    userId: userId,
     metadata: { 
       logSource: 'vscode-extension',
       fileCount: body.files.length
@@ -810,7 +856,39 @@ export async function POST(req: NextRequest) {
     // Scan each file
     const results = body.files.map(scanFile);
     
-    // Overall summary
+    // Convert to extension format
+    const vulnerabilities: ExtensionVulnerability[] = [];
+    results.forEach((result: ScanResult) => {
+      result.issues.forEach((issue: ScanIssue) => {
+        if (issue.line && issue.originalCode && issue.fixedCode) {
+          vulnerabilities.push({
+            file: result.file,
+            line: issue.line,
+            severity: issue.severity === 'critical' ? 'high' : issue.severity as 'high' | 'medium' | 'low',
+            type: issue.type,
+            description: issue.message,
+            suggestion: issue.suggestion || 'Review and fix this security issue',
+            originalCode: issue.originalCode,
+            fixedCode: issue.fixedCode
+          });
+        }
+      });
+    });
+    
+    // Overall summary for extension
+    const extensionSummary = {
+      total: vulnerabilities.length,
+      high: vulnerabilities.filter(v => v.severity === 'high').length,
+      medium: vulnerabilities.filter(v => v.severity === 'medium').length,
+      low: vulnerabilities.filter(v => v.severity === 'low').length
+    };
+
+    const extensionResponse: ExtensionResponse = {
+      vulnerabilities,
+      summary: extensionSummary
+    };
+
+    // Also keep the original format for backward compatibility
     const overallSummary = results.reduce((acc: { total: number; critical: number; high: number; medium: number; low: number }, result: ScanResult) => ({
       total: acc.total + result.summary.total,
       critical: acc.critical + result.summary.critical,
@@ -822,7 +900,10 @@ export async function POST(req: NextRequest) {
     const response = { 
       results,
       summary: overallSummary,
-      scanTime: new Date().toISOString()
+      scanTime: new Date().toISOString(),
+      // Add extension format
+      vulnerabilities: extensionResponse.vulnerabilities,
+      extensionSummary: extensionResponse.summary
     };
 
     // Update scan record as completed

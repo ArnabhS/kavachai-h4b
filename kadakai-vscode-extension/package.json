@@ -1,8 +1,8 @@
 {
   "name": "kavachai-white-hat-agent",
   "displayName": "kavachai White Hat Agent",
-  "description": "Scan Web2/Web3 code and wallets for vulnerabilities. Integrates with kavachai web app for advanced security analysis.",
-  "version": "0.0.1",
+  "description": "Interactive Web2/Web3 security scanner with direct code editing. Scan for vulnerabilities and apply fixes with one click. Supports JavaScript, TypeScript, Solidity, Python, Java, PHP, Ruby, Go, Rust, C/C++, and C#.",
+  "version": "0.0.2",
   "publisher": "kavachai",
   "engines": {
     "vscode": ">=1.70.0"
@@ -11,7 +11,8 @@
   "keywords": ["security", "vulnerability", "scanning", "web3", "blockchain", "solidity", "javascript", "typescript", "html", "cybersecurity"],
   "activationEvents": [
     "onCommand:kavachai.enterApiKey",
-    "onCommand:kavachai.scanWorkspace"
+    "onCommand:kavachai.scanWorkspace",
+    "onCommand:kavachai.checkSensitiveFiles"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -23,6 +24,10 @@
       {
         "command": "kavachai.scanWorkspace",
         "title": "Kavach.Ai: Scan Workspace for Vulnerabilities"
+      },
+      {
+        "command": "kavachai.checkSensitiveFiles",
+        "title": "Kavach.Ai: Check for Sensitive Files"
       }
     ]
   },

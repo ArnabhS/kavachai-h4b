@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { getApiKey, createApiKey, regenerateApiKey } from '@/lib/models';
 import { getUser } from '@civic/auth-web3/nextjs';
 
-
 export async function GET() {
   
   const user = await getUser();
