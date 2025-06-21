@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Shield } from "lucide-react";
+import Image from "next/image";
 
 const Navbar = () => {
   return (
@@ -13,7 +13,7 @@ const Navbar = () => {
                       animate={{ opacity: 1, x: 0 }}
                       className="flex items-center space-x-2"
                     >
-                      <Shield className="h-8 w-8 text-cyber-accent" />
+                     <Image src={'/kavachai.webp'} width={100} height={100} className="h-10 w-10 rounded-full" alt="logo" />
                       <span className="text-xl font-bold glow-text">Kavach.AI</span>
                     </motion.div>
 
