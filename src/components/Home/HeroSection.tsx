@@ -78,7 +78,7 @@ const HeroSection = () => {
         <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-gray-900/20 via-black to-gray-900/20 rounded-3xl"></div>
                 <div className="container mx-auto px-4 py-6 lg:py-10 relative z-10 rounded-lg">
-                  <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 items-center">
                     {/* Left Side */}
                     <motion.div
                       className="space-y-6"
@@ -120,7 +120,7 @@ const HeroSection = () => {
         
                       
                       <motion.div
-                        className="flex flex-col sm:flex-row gap-4"
+                        className="flex flex-col lg:flex-row gap-4"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 0.8 }}
@@ -128,7 +128,7 @@ const HeroSection = () => {
                         <Link href={'/dashboard'}>
                         <Button
                           size="lg"
-                          className="bg-white hover:bg-gray-100 text-black px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:cursor-pointer"
+                          className="bg-white hover:bg-gray-100 text-black w-full lg:w-fit px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:cursor-pointer"
                         >
                           Dashboard
                           <TrendingUp className="ml-2 h-5 w-5" />
@@ -138,7 +138,7 @@ const HeroSection = () => {
                         <Button
                           variant="outline"
                           size="lg"
-                          className="border-gray-100 text-gray-300 hover:bg-gray-900 hover:border-gray-600 px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:cursor-pointer"
+                          className="border-gray-100 text-gray-300 hover:bg-gray-900 hover:border-gray-600 px-8 py-3 rounded-lg font-semibold w-full lg:w-fit transition-all duration-300 transform hover:scale-105 hover:cursor-pointer"
                         >
                           <Code className="mr-2 h-5 w-5" />
                           VsCode Extension
@@ -172,10 +172,10 @@ const HeroSection = () => {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.8, delay: 0.4 }}
                     >
-                      <div className="bg-gradient-to-br from-gray-900 to-black rounded-2xl p-6 shadow-2xl border-3 border-gray-800">
+                      <div className="bg-gradient-to-br from-gray-900 to-black rounded-2xl p-4 md:p-6 shadow-2xl border-3 border-gray-800 max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl w-full mx-auto">
                         {/* Window Header */}
-                        <div className="flex items-center justify-between mb-6">
-                          <div className="flex space-x-2">
+                        <div className="flex items-center justify-between mb-4 lg:mb-6">
+                          <div className="flex space-x-1 lg:space-x-2">
                             <div className="w-3 h-3 bg-red-500 rounded-full"></div>
                             <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
                             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
@@ -193,19 +193,19 @@ const HeroSection = () => {
                         </div>
         
                         {/* Dashboard Content */}
-                        <div className="space-y-6">
+                        <div className="space-y-2 lg:space-y-6">
                           <div>
-                            <div className="flex items-center justify-between mb-2">
-                              <h3 className="text-lg font-semibold text-gray-200">Your Security Stats</h3>
+                            <div className="flex items-center justify-between mb-1 lg:mb-2">
+                              <h3 className=" text-sm lg:text-lg font-semibold text-gray-200">Your Security Stats</h3>
                               <span className="bg-red-500 text-white text-xs px-2 py-1 rounded">Live</span>
                             </div>
-                            <p className="text-sm text-gray-500">Jun 21, 2025</p>
+                            <p className=" text-xs lg:text-sm text-gray-500">Jun 21, 2025</p>
                           </div>
         
                           <div className="grid grid-cols-2 gap-6">
                             <div>
-                              <div className="text-sm text-gray-500 mb-1">Today</div>
-                              <div className="text-2xl font-bold text-white">4h 32m</div>
+                              <div className="text-xs lg:text-sm text-gray-500 mb-1">Today</div>
+                              <div className="text-lg  lg:text-2xl font-bold text-white">4h 32m</div>
                               <div className="text-xs text-green-400 flex items-center">
                                 <TrendingUp className="h-3 w-3 mr-1" />
                                 +18% from yesterday
@@ -213,8 +213,8 @@ const HeroSection = () => {
                             </div>
         
                             <div>
-                              <div className="text-sm text-gray-500 mb-1">Weekly Streak</div>
-                              <div className="text-2xl font-bold text-white">
+                              <div className="text-xs lg:text-sm text-gray-500 mb-1">Weekly Streak</div>
+                              <div className="text-lg lg:text-2xl font-bold text-white">
                                 21 <span className="text-sm text-gray-500">days</span>
                               </div>
                               <div className="text-xs text-gray-400 flex items-center">
