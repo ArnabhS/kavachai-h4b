@@ -150,7 +150,7 @@ export function AuditLogTab({ onScanComplete }: AuditLogTabProps) {
             </p>
             <Button
               onClick={handleAnalyze}
-              className="bg-white hover:bg-gray-100 text-black px-6"
+              className="bg-gray-100 hover:bg-gray-100 text-black px-6"
               disabled={loading || !logs.trim()}
             >
               {loading ? "Analyzing..." : "Analyze Logs"}

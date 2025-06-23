@@ -93,7 +93,7 @@ export function SmartContractsTab({ onScanComplete }: SmartContractsTabProps) {
             <p className="text-sm text-gray-400">Supports Ethereum addresses and Solidity contract code</p>
             <Button
               onClick={handleScan}
-              className="bg-white hover:bg-gray-100 text-black px-6"
+              className="bg-gray-100 hover:bg-gray-100 text-black px-6"
               disabled={loading || !contract.trim()}
             >
               {loading ? "Analyzing..." : "Analyze Contract"}

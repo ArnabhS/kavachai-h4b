@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { CivicAuthProvider } from "@civic/auth-web3/nextjs";
+import { ThemeProvider } from "next-themes";
 
 
 export const metadata: Metadata = {
@@ -16,13 +17,15 @@ export default function RootLayout({
   return (
    
     <html lang="en">
-      <body
-       
+      <body      
       >
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
         <CivicAuthProvider>
         {children}
         </CivicAuthProvider>
+        </ThemeProvider>
       </body>
+     
     </html>
     
   );

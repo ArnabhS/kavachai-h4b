@@ -3,6 +3,7 @@
 import { easeOut, motion } from "framer-motion"
 import { Brain, Shield, Users, Eye, AlertTriangle, Cpu } from "lucide-react"
 import { FeatureCard } from "./FeatureCard"
+import { useTheme } from 'next-themes'
 
 const features = [
   {
@@ -80,9 +81,11 @@ const fadeInUpVariants = {
 }
 
 export default function Features() {
+  const { theme } = useTheme();
+
   return (
     <motion.div
-      className="py-12 bg-gradient-to-b from-gray-950 to-black px-6 lg:px-8 "
+      className={`py-12 ${theme === 'light' ? 'bg-gray-100 text-gray-900' : 'bg-black text-white'} px-6 lg:px-8`}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, margin: "-100px" }}
@@ -90,8 +93,8 @@ export default function Features() {
     >
       <div className="container mx-auto lg:px-4">
         <motion.div className="text-center mb-10 lg:mb-16" variants={itemVariants}>
-          <h2 className="text-xl md:text-4xl font-bold mb-4 text-white">Advanced Security Features</h2>
-          <p className="text-gray-500 max-w-3xl mx-auto text-sm md:text-base lg:text-lg">
+          <h2 className={`text-xl md:text-4xl font-bold mb-4 ${theme === 'dark' ? "text-white": 'text-black'}`}>Advanced Security Features</h2>
+          <p className={` ${theme === 'dark'? 'text-gray-500': 'text-gray-700'} max-w-3xl mx-auto text-sm md:text-base lg:text-lg`}>
             Comprehensive Web3 security powered by cutting-edge AI and human expertise
           </p>
         </motion.div>

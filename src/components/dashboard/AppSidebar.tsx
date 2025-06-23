@@ -4,6 +4,8 @@ import Image from "next/image";
 import { UserButton } from "@civic/auth/react";
 import myImage from "@/assets/kavachai.jpg";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+
 const navigationItems = [
   {
     id: "web-scraping",
@@ -50,24 +52,33 @@ export function AppSidebar({
   isOpen,
   onToggle,
 }: AppSidebarProps) {
+  const [theme, setTheme] = useState('dark');
+  useEffect(() => {
+    const observer = () => {
+      setTheme(document.documentElement.classList.contains('light') ? 'light' : 'dark');
+    };
+    observer();
+    window.addEventListener('themechange', observer);
+    return () => window.removeEventListener('themechange', observer);
+  }, []);
   return (
     <>
       {/* Mobile Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className={`fixed inset-0 ${theme === 'light' ? 'bg-gray-400/50' : 'bg-black/50'} z-40 md:hidden`}
           onClick={onToggle}
         />
       )}
 
       {/* Sidebar */}
       <div
-        className={`fixed left-0 top-0 h-full w-56 lg:w-72 bg-black border-r border-gray-800 z-50 transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:z-auto ${
+        className={`fixed left-0 top-0 h-full w-56 lg:w-72 ${theme === 'light' ? 'bg-gray-100 border-gray-200 text-gray-900' : 'bg-black border-gray-800 text-white'} border-r z-50 transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:z-auto ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {/* Header */}
-        <div className="border-b border-gray-800 p-4">
+        <div className={`border-b p-4 ${theme === 'light' ? 'border-gray-200' : 'border-gray-800'}`}>
           <div className="flex items-center justify-between">
             
             <div className="flex items-center space-x-2">
@@ -81,12 +92,12 @@ export function AppSidebar({
               />
               </Link>
               <div>
-                <h2 className="font-bold text-white">Kavach.AI</h2>
-                <p className="text-xs text-gray-400">Security Dashboard</p>
+                <h2 className={`font-bold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>Kavach.AI</h2>
+                <p className={`text-xs ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>Security Dashboard</p>
               </div>
             </div>
             <button
-              className="md:hidden text-gray-400 hover:text-white p-1 rounded transition-colors"
+              className={`md:hidden p-1 rounded transition-colors ${theme === 'light' ? 'text-gray-500 hover:text-gray-900' : 'text-gray-400 hover:text-white'}`}
               onClick={onToggle}
             >
               <Menu className=" h-3 w-3 rounded-full bg-cyan-950" />
