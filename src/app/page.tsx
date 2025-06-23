@@ -26,12 +26,12 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h -screen bg-cyber-dark text-white">
+    <div className="min-h -screen bg-gray-950 text-white">
       <div>
         <Navbar />
       </div>
       
-      <div className="py-4 mt-14">
+      <div className="mt-14 lg:mt-10 ">
       <HeroSection />
       <HowItWorks />
       <Features />

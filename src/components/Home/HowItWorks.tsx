@@ -48,7 +48,7 @@ const steps = [
 
 export default function TimelinePage() {
   return (
-    <div className="min-h-screen flex flex-col items-center px-4 py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex flex-col items-center px-4 py-12 sm:px-6 lg:px-8 bg- black bg-gradient-to-b from-black via-black/80 to-gray-950 z-10 pointer-events-none">
       <style jsx>{`
         .vertical-timeline::before {
           background: #374151 !important;

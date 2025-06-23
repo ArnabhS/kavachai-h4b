@@ -55,7 +55,7 @@ const HeroSection = () => {
         style={{ position: 'absolute', inset: 0, zIndex: 0 }}
       />
 
-      <div className="absolute inset-0 bg-gradient-radial from-cyber-accent/10 via-transparent to-transparent z-0" />
+      <div className="absolute inset-0 bg-gradient-radial from-cyber-accent/10 via-transparent to-black z-0" />
 
       <motion.div
         animate={{ y: [0, -20, 0] }}
@@ -76,17 +76,17 @@ const HeroSection = () => {
       <div className="relative z-20 w-[90%] mx-auto ">
 
         <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-gray-900/20 via-black to-gray-900/20"></div>
-                <div className="container mx-auto px-4 py-8 lg:py-16 relative z-10">
-                  <div className="grid  lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-                    
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-900/20 via-black to-gray-900/20 rounded-3xl"></div>
+                <div className="container mx-auto px-4 py-6 lg:py-10 relative z-10 rounded-lg">
+                  <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+                    {/* Left Side */}
                     <motion.div
-                      className="space-y-8"
+                      className="space-y-6"
                       initial={{ opacity: 0, x: -50 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.8 }}
                     >
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         
                         <motion.div
                           className="space-y-2 text-pretty"
@@ -107,12 +107,12 @@ const HeroSection = () => {
                       </div>
         
                       <motion.div
-                        className="space-y-4"
+                        className="space-y- 4"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 0.6 }}
                       >
-                        <p className="text-base md:text-lg text-gray-300 leading-relaxed md:max-w-82">
+                        <p className="text-base md:text-lg text-gray-300 leading-relaxed md:max-w-86">
                           Civic-Verified Experts + Agentic AI to Stop Web3 Threats in Real Time.
                         </p>
                         <p className="text-sm md:text-base text-gray-500">90% of DeFi hacks go undetected - until now.</p>
@@ -153,7 +153,14 @@ const HeroSection = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 1.0 }}
                       >
-                        <AnimatedTooltip items={people} />
+                        <div className='flex gap-6 items-center'>
+                          <div className='flex'>
+                            <AnimatedTooltip  items={people} />
+                          </div>
+                          
+                        <p className=' tesxt-sm text-white'>2500+ happy customers</p>
+                        </div>
+                        
                        
                       </motion.div>
                     </motion.div>
@@ -192,7 +199,7 @@ const HeroSection = () => {
                               <h3 className="text-lg font-semibold text-gray-200">Your Security Stats</h3>
                               <span className="bg-red-500 text-white text-xs px-2 py-1 rounded">Live</span>
                             </div>
-                            <p className="text-sm text-gray-500">Dec 21, 2024</p>
+                            <p className="text-sm text-gray-500">Jun 21, 2025</p>
                           </div>
         
                           <div className="grid grid-cols-2 gap-6">

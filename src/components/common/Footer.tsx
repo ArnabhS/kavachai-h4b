@@ -5,8 +5,8 @@ import myImage from "@/assets/kavachai.jpg";
 
 const Footer = () => {
   return (
-    <div>
-        <footer className="bg-cyber-dark border-t border-cyber-accent/20 py-12">
+    <div className="bg-black">
+        <footer className="bg-black border-t border-cyber-accent/20 py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <motion.div
@@ -40,8 +40,8 @@ const Footer = () => {
             </motion.div>
           </div>
 
-          <div className="mt-8 pt-8  text-center text-gray-400 text-sm">
-            <p>&copy; 2024 Kavach.AI. Decentralized AI-Powered Cyber Defense.</p>
+          <div className="mt-6 pt -8  text-center text-gray-400 text-sm">
+            <p>&copy; 2025 Kavach.AI. Decentralized AI-Powered Cyber Defense.</p>
           </div>
         </div>
       </footer>        

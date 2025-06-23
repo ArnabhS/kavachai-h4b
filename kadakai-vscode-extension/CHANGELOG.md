@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the "Kadakai White Hat Agent" extension will be documented in this file.
+All notable changes to the "Kavachai White Hat Agent" extension will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -8,30 +8,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Initial release
 - Multi-language vulnerability scanning (JavaScript, TypeScript, HTML, Solidity)
 - API key validation and management
 - Real-time workspace scanning
 - Severity-based issue reporting
 - Line-level vulnerability detection
-- Integration with Kadakai web app backend
+- Integration with  web app backend
 
 ### Features
+
 - **JavaScript/TypeScript Scanning**: Detects eval usage, XSS vulnerabilities, password storage issues
 - **HTML Security**: Identifies inline scripts, event handlers, CSP issues
 - **Solidity Analysis**: Finds reentrancy risks, delegatecall usage, timestamp dependencies
-- **API Integration**: Secure connection to Kadakai backend for enhanced scanning
+- **API Integration**: Secure connection to  backend for enhanced scanning
 
 ### Technical
+
 - VS Code extension with TypeScript
 - Node.js backend integration
 - MongoDB for API key storage
 - Real-time file analysis
 - Comprehensive error handling
 
-## [0.0.2] - 2024-01-XX
+## [0.0.2] - 2025-01-XX
 
 ### Added
+
 - 🎯 Interactive vulnerability panel with visual dashboard
 - 🔧 Direct code editing with apply/reject options
 - 🎨 Severity-based color coding (High/Medium/Low)
@@ -42,19 +46,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 💡 Contextual fix suggestions for each vulnerability type
 
 ### Changed
+
 - Replaced JSON output panel with interactive webview
 - Improved user experience with one-click fixes
 - Enhanced file path resolution for better accuracy
 - Updated command names to "KavachAi" branding
 
 ### Fixed
+
 - Better error handling for file operations
 - Improved API response format compatibility
 - Enhanced security fix suggestions
 
-## [0.0.1] - 2024-01-XX
+## [0.0.1] - 2025-01-XX
 
 ### Added
+
 - Initial beta release
 - Basic vulnerability scanning functionality
 - API key management system
@@ -64,4 +71,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version History
 
-- **0.0.1**: Initial beta release with core scanning features 
+- **0.0.1**: Initial beta release with core scanning features

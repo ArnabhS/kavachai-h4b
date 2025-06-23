@@ -67,7 +67,7 @@ export function FAQSection() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto bg-black">
       <motion.div className="space-y-4" variants={containerVariants} initial="hidden" animate="visible">
         {faqs.map((faq, index) => (
           <motion.div
@@ -82,16 +82,16 @@ export function FAQSection() {
               onClick={() => toggleFAQ(index)}
               whileHover={{ backgroundColor: "rgba(55, 65, 81, 0.1)" }}
             >
-              <h3 className="text-lg font-semibold text-white pr-4">{faq.question}</h3>
+              <h3 className="text-sm lg:text-lg font-semibold text-white pr-4">{faq.question}</h3>
               <motion.div
                 className="flex-shrink-0"
                 animate={{ rotate: openIndex === index ? 180 : 0 }}
                 transition={{ duration: 0.3 }}
               >
                 {openIndex === index ? (
-                  <Minus className="h-5 w-5 text-gray-400" />
+                  <Minus className="h-3 w-3 lg:h-5 lg:w-5 text-gray-400" />
                 ) : (
-                  <Plus className="h-5 w-5 text-gray-400" />
+                  <Plus className="h-3 w-3 lg:h-5 lg:w-5 text-gray-400" />
                 )}
               </motion.div>
             </motion.button>
@@ -111,7 +111,7 @@ export function FAQSection() {
                     animate={{ y: 0 }}
                     transition={{ duration: 0.3, delay: 0.1 }}
                   >
-                    <p className="text-gray-400 leading-relaxed">{faq.answer}</p>
+                    <p className="text-gray-400 leading-relaxed text-xs lg:text-sm">{faq.answer}</p>
                   </motion.div>
                 </motion.div>
               )}
