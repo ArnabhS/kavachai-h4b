@@ -23,6 +23,8 @@ export function VSCodeExtensionTab() {
   const [validating, setValidating] = useState(false)
   const [validationError, setValidationError] = useState<string | null>(null)
 
+  const [theme, setTheme] = useState('dark')
+
   // Fetch API key on mount
   useEffect(() => {
     const fetchApiKey = async () => {
@@ -42,6 +44,15 @@ export function VSCodeExtensionTab() {
       setApiKeyLoading(false)
     }
     fetchApiKey()
+  }, [])
+
+  useEffect(() => {
+    const observer = () => {
+      setTheme(document.documentElement.classList.contains('light') ? 'light' : 'dark')
+    }
+    observer()
+    window.addEventListener('themechange', observer)
+    return () => window.removeEventListener('themechange', observer)
   }, [])
 
   // Regenerate API key
@@ -129,7 +140,7 @@ export function VSCodeExtensionTab() {
     <div className="space-y-6">
       {/* API Key Management */}
       <motion.div
-        className="bg-gradient-to-br from-gray-900 to-black border border-gray-800 rounded-xl p-6"
+        className={`${theme === 'light' ? 'bg-gradient-to-br from-gray-100 to-white border-gray-200 text-gray-900' : 'bg-gradient-to-br from-gray-900 to-black border-gray-800 text-white'} border rounded-xl p-6`}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
@@ -202,7 +213,7 @@ export function VSCodeExtensionTab() {
 
       {/* API Key Validation */}
       <motion.div
-        className="bg-gradient-to-br from-gray-900 to-black border border-gray-800 rounded-xl p-6"
+        className={`${theme === 'light' ? 'bg-gradient-to-br from-gray-100 to-white border-gray-200 text-gray-900' : 'bg-gradient-to-br from-gray-900 to-black border-gray-800 text-white'} border rounded-xl p-6`}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
@@ -273,7 +284,7 @@ export function VSCodeExtensionTab() {
 
       {/* Extension Info */}
       <motion.div
-        className="bg-gradient-to-br from-gray-900 to-black border border-gray-800 rounded-xl p-8"
+        className={`${theme === 'light' ? 'bg-gradient-to-br from-gray-100 to-white border-gray-200 text-gray-900' : 'bg-gradient-to-br from-gray-900 to-black border-gray-800 text-white'} border rounded-xl p-8`}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}

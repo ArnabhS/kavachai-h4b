@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Shield, AlertTriangle, CheckCircle, Clock } from "lucide-react"
 import { WebScrapingTab } from "@/components/dashboard/WebScrappingTab"
@@ -16,6 +16,16 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("web-scraping")
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { stats, loading, refetch } = useScanStats()
+  const [theme, setTheme] = useState('dark')
+
+  useEffect(() => {
+    const observer = () => {
+      setTheme(document.documentElement.classList.contains('light') ? 'light' : 'dark')
+    }
+    observer()
+    window.addEventListener('themechange', observer)
+    return () => window.removeEventListener('themechange', observer)
+  }, [])
 
   const handleScanComplete = () => {
     // Refresh stats when a scan is completed
@@ -106,7 +116,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex h-screen bg-black overflow-hidden">
+    <div className={`flex h-screen overflow-hidden ${theme === 'light' ? 'bg-gray-100 text-gray-900' : 'bg-black text-white'}`}>
       {/* Sidebar */}
       <AppSidebar
         activeTab={activeTab}

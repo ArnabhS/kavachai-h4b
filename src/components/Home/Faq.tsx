@@ -2,6 +2,7 @@
 
 import { easeOut, motion } from "framer-motion"
 import { FAQSection } from "./FaqSection"
+import { useTheme } from "next-themes"
 
 
 const itemVariants = {
@@ -29,18 +30,19 @@ const fadeInUpVariants = {
 }
 
 export default function FAQ() {
+  const {theme} = useTheme();
   return (
     <motion.div
-      className="py-20 bg-black"
+      className={`py-12 md:py-20  ${theme === 'dark'? 'bg-black': 'bg-gray-100'}`}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, margin: "-100px" }}
       variants={fadeInUpVariants}
     >
       <div className="container mx-auto px-4">
-        <motion.div className="text-center mb-16" variants={itemVariants}>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">Frequently Asked Questions</h2>
-          <p className="text-gray-500 max-w-2xl mx-auto text-lg">
+        <motion.div className="text-center mb-10 lg:mb-16" variants={itemVariants}>
+          <h2 className={`text-xl md:text-2xl lg:text-4xl font-bold mb-4 ${theme === 'dark'? 'text-white': 'text-black'}`}>Frequently Asked Questions</h2>
+          <p className="text-gray-500 max-w-2xl mx-auto text-sm lg:text-lg">
             Everything you need to know about Kavach.ai&#39;s decentralized security platform
           </p>
         </motion.div>

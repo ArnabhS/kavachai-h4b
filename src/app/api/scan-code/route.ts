@@ -4,7 +4,6 @@ import { connectDB } from '@/lib/mongodb';
 import { Scan } from '@/lib/models';
 import { v4 as uuidv4 } from 'uuid';
 import { detectProjectType } from '@/lib/detectProjectType';
-import { askAgent } from '@/lib/aiClient';
 import { generateExtensionFix, detectVulnerabilitiesForExtension } from '@/lib/extensionAiClient';
 
 interface ScanIssue {
@@ -1230,7 +1229,7 @@ export async function PUT(req: NextRequest) {
 
     // Scan each file with specialized extension AI
     const results = await Promise.all(files.map(async (file: any) => {
-      const { file: fileName, content, path, environment } = file;
+      const { file: fileName, content } = file;
       const fileType = getFileType(fileName);
       
       let issues: ScanIssue[] = [];

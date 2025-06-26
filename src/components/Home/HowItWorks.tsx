@@ -1,7 +1,7 @@
 import { VerticalTimeline, VerticalTimelineElement } from 'react-vertical-timeline-component';
 import 'react-vertical-timeline-component/style.min.css';
 import { LogIn, Globe, Bug, Download, Key } from "lucide-react";
-
+import { useTheme } from 'next-themes';
 
 const steps = [
   {
@@ -47,8 +47,10 @@ const steps = [
 ];
 
 export default function TimelinePage() {
+  const { theme } = useTheme();
+
   return (
-    <div className="min-h-screen flex flex-col items-center px-4 py-12 sm:px-6 lg:px-8">
+    <section className={`py-16 ${theme === 'light' ? 'bg-gray-100 text-gray-900' : 'bg-black text-white'}`}>
       <style jsx>{`
         .vertical-timeline::before {
           background: #374151 !important;
@@ -58,52 +60,51 @@ export default function TimelinePage() {
           box-shadow: 0 0 0 4px #1F2937 !important;
         }
       `}</style>
-      
-      <h2 className="text-3xl font-bold glow-text text-center mb-2">How It Works</h2>
-      <p className="text-slate-400 text-center tracking-tight mb-12">A simple 5-step process for comprehensive website security scanning</p>
 
-      {/* <VerticalTimeline >
-        {steps.map((step) => (
-          <VerticalTimelineElement
-            key={step.id}
-            className="vertical-timeline-element--work "
-            contentStyle={{ background: '#FBD9ED', color: '#000' }}
-            contentArrowStyle={{ borderRight: `7px solid #FBD9ED` }}
-            date={`Step 0${step.id}`}
-            iconStyle={{ background: step.bgColor, color: '#fff' }}
-            icon={step.icon}
-          >
-            <h3 className="text-lg font-semibold text-cyber-accent">{step.title}</h3>
-            <p className="text-slate-600 text-sm mt-2">{step.description}</p>
-          </VerticalTimelineElement>
-        ))}
-      </VerticalTimeline> */}
+      <h2 className="text-3xl font-bold glow-text text-center mb-2">How It Works</h2>
+      <p className="text-slate-400 dark:text-slate-400 text-center tracking-tight mb-12">
+        A simple 5-step process for comprehensive website security scanning
+      </p>
 
       <VerticalTimeline>
-        {steps.map((step) => (
-          <VerticalTimelineElement
-            key={step.id}
-            className="vertical-timeline-element--work"
-            // contentStyle={{ background: step.bgColor, color: '#fff' }}
-            contentStyle={{
-              background: 'color-mix(in srgb, var(--cyber-blue) 50%, transparent)',
-              backdropFilter: 'blur(12px)',
-              border: '1px solid color-mix(in srgb, var(--cyber-accent) 20%, transparent)',
-              borderRadius: 'var(--radius)',
-              color: '#fff',
-              transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-            }}
-            contentArrowStyle={{ borderRight: `7px solid ${step.bgColor}` }}
-            date={`Step 0${step.id}`}
-            iconStyle={{ background: step.bgColor, color: '#fff' }}
-            icon={step.icon}
-          >
-            <h3 className="text-lg font-semibold">{step.title}</h3>
-            <p className="text-sm mt-2">{step.description}</p>
-          </VerticalTimelineElement>
-        ))}
-      </VerticalTimeline>
+        {steps.map((step) => {
+          const isLight = theme === 'light';
 
-    </div>
+          return (
+            <VerticalTimelineElement
+              key={step.id}
+              className="vertical-timeline-element--work"
+              contentStyle={
+                isLight
+                  ? {
+                      background: '#ffffff',
+                      color: '#1f2937',
+                      border: `1px solid ${step.bgColor}`,
+                      boxShadow: '0 4px 14px rgba(0,0,0,0.05)',
+                      borderRadius: '0.5rem',
+                    }
+                  : {
+                      background: 'color-mix(in srgb, var(--cyber-blue) 50%, transparent)',
+                      backdropFilter: 'blur(12px)',
+                      border: '1px solid color-mix(in srgb, var(--cyber-accent) 20%, transparent)',
+                      borderRadius: 'var(--radius)',
+                      color: '#fff',
+                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    }
+              }
+              contentArrowStyle={{
+                borderRight: `7px solid ${step.bgColor}`,
+              }}
+              date={`Step 0${step.id}`}
+              iconStyle={{ background: step.bgColor, color: '#fff' }}
+              icon={step.icon}
+            >
+              <h3 className={`text-lg font-semibold ${isLight ? 'text-gray-900' : ''}`}>{step.title}</h3>
+              <p className={`text-sm mt-2 ${isLight ? 'text-gray-700' : ''}`}>{step.description}</p>
+            </VerticalTimelineElement>
+          );
+        })}
+      </VerticalTimeline>
+    </section>
   );
 }

@@ -33,7 +33,7 @@ const recentLogs = [
     id: 1,
     action: "Security scan completed",
     user: "System",
-    timestamp: "2024-12-21 14:30:25",
+    timestamp: "2025-12-21 14:30:25",
     type: "scan",
     details: "Vulnerability scan for instagram.com completed",
   },
@@ -41,7 +41,7 @@ const recentLogs = [
     id: 2,
     action: "User login",
     user: "john.doe@example.com",
-    timestamp: "2024-12-21 14:25:10",
+    timestamp: "2025-12-21 14:25:10",
     type: "auth",
     details: "User authenticated via Civic",
   },
@@ -49,7 +49,7 @@ const recentLogs = [
     id: 3,
     action: "Smart contract analyzed",
     user: "System",
-    timestamp: "2024-12-21 14:20:15",
+    timestamp: "2025-12-21 14:20:15",
     type: "analysis",
     details: "Contract 0x1234...abcd analyzed for vulnerabilities",
   },
@@ -57,7 +57,7 @@ const recentLogs = [
     id: 4,
     action: "Alert triggered",
     user: "System",
-    timestamp: "2024-12-21 14:15:30",
+    timestamp: "2025-12-21 14:15:30",
     type: "alert",
     details: "High severity vulnerability detected",
   },
@@ -150,7 +150,7 @@ export function AuditLogTab({ onScanComplete }: AuditLogTabProps) {
             </p>
             <Button
               onClick={handleAnalyze}
-              className="bg-white hover:bg-gray-100 text-black px-6"
+              className="bg-gray-100 hover:bg-gray-100 text-black px-6"
               disabled={loading || !logs.trim()}
             >
               {loading ? "Analyzing..." : "Analyze Logs"}

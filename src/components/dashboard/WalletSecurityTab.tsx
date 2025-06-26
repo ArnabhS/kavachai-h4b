@@ -124,7 +124,7 @@ export function WalletSecurityTab({ onScanComplete }: WalletSecurityTabProps) {
           />
           <Button
             onClick={handleScan}
-            className="bg-white hover:bg-gray-100 text-black px-4 lg:px-6"
+            className="bg-gray-100 hover:bg-gray-100 text-black px-4 lg:px-6"
             disabled={loading || !walletAddress.trim()}
           >
             {loading ? "Analyzing..." : "Analyze Wallet"}
