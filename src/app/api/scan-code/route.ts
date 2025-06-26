@@ -5,6 +5,7 @@ import { Scan } from '@/lib/models';
 import { v4 as uuidv4 } from 'uuid';
 import { detectProjectType } from '@/lib/detectProjectType';
 import { askAgent } from '@/lib/aiClient';
+import { generateExtensionFix, detectVulnerabilitiesForExtension } from '@/lib/extensionAiClient';
 
 interface ScanIssue {
   type: string;
@@ -588,40 +589,18 @@ const PROJECT_TYPE = detectProjectType();
 // New function to generate AI-based fixes and validate findings
 async function generateAIFix(code: string, fileType: string, issueType: string, issueMessage: string): Promise<{ fixedCode?: string, suggestion?: string }> {
   try {
-    const prompt = `
-      A static analysis tool flagged the following code snippet from a ${fileType} file with a potential "${issueType}" vulnerability.
-      
-      Vulnerability message: "${issueMessage}"
-      
-      Code Snippet:
-      \`\`\`${fileType.toLowerCase()}
-      ${code}
-      \`\`\`
-      
-      Your tasks:
-      1. First, critically determine if this is a **true positive** security vulnerability. Do not flag common, safe programming practices as vulnerabilities. For example, a simple opening \`<script>\` tag without any attributes or malicious content is not a vulnerability on its own. Be very critical to avoid false positives.
-      2. If it is a **true positive**, provide a secure code replacement ("fixedCode"). The fix should be minimal and directly address the vulnerability.
-      3. Provide a brief, clear explanation for the fix ("suggestion").
-      
-      Return your response ONLY in this JSON format:
-      {
-        "isVulnerability": boolean, // true ONLY if it is a real security risk, otherwise false
-        "suggestion": "Your explanation here. If it is a false positive, explain why.",
-        "fixedCode": "Your fixed code snippet here. If it is a false positive, return the original code."
-      }
-    `;
-
-    const aiResponse = await askAgent(prompt, code);
+    // Use the specialized extension AI function for better code fixes
+    const result = await generateExtensionFix(code, fileType, issueType, issueMessage);
     
-    // Add the issue only if the AI confirms it's a vulnerability and provides a different, valid fix.
-    if (aiResponse && aiResponse.isVulnerability && aiResponse.fixedCode && aiResponse.fixedCode !== code) {
+    // Only return if we got a valid fix
+    if (result.fixedCode && result.fixedCode !== code) {
       return {
-        fixedCode: aiResponse.fixedCode,
-        suggestion: aiResponse.suggestion,
+        fixedCode: result.fixedCode,
+        suggestion: result.suggestion,
       };
     }
     
-    // If AI thinks it's a false positive or provides no meaningful fix, return nothing to filter it out.
+    // If no meaningful fix was generated, return nothing to filter it out
     return {};
   } catch (error) {
     console.error('AI fix generation failed:', error);
@@ -632,80 +611,9 @@ async function generateAIFix(code: string, fileType: string, issueType: string, 
 // AI-powered vulnerability detection function
 async function detectVulnerabilitiesWithAI(content: string, fileType: string): Promise<ScanIssue[]> {
   try {
-    const prompt = `
-      Analyze this ${fileType} code for security vulnerabilities:
-      
-      ${content}
-      
-      Look for:
-      1. SQL Injection vulnerabilities
-      2. XSS (Cross-Site Scripting) vulnerabilities
-      3. Code injection vulnerabilities
-      4. Command injection vulnerabilities
-      5. Path traversal vulnerabilities
-      6. Insecure deserialization
-      7. Insecure direct object references
-      8. Security misconfigurations
-      9. Sensitive data exposure
-      10. Missing access controls
-      11. Cryptographic failures
-      12. Input validation issues
-      13. Output encoding issues
-      14. Authentication bypass
-      15. Authorization flaws
-      
-      For each vulnerability found, provide:
-      - Type of vulnerability
-      - Severity (critical/high/medium/low)
-      - Line number (if possible)
-      - Description of the issue
-      - Suggested fix
-      - Confidence level (0-100)
-      
-      Return the results in this JSON format, ensuring you do not flag false positives:
-      {
-        "vulnerabilities": [
-          {
-            "type": "sql-injection",
-            "severity": "critical",
-            "line": 15,
-            "message": "SQL injection vulnerability detected",
-            "suggestion": "Use parameterized queries",
-            "confidence": 95,
-            "originalCode": "const query = \`SELECT * FROM users WHERE id = \${userId}\`",
-            "fixedCode": "const query = 'SELECT * FROM users WHERE id = ?'"
-          }
-        ]
-      }
-    `;
-
-    const aiResponse = await askAgent(prompt, content);
-    
-    if (aiResponse.vulnerabilities && Array.isArray(aiResponse.vulnerabilities)) {
-      return aiResponse.vulnerabilities.map((vuln: {
-        type: string;
-        severity: 'low' | 'medium' | 'high' | 'critical';
-        line?: number;
-        message: string;
-        suggestion?: string;
-        confidence?: number;
-        originalCode?: string;
-        fixedCode?: string;
-      }) => ({
-        type: vuln.type,
-        severity: vuln.severity,
-        message: vuln.message,
-        line: vuln.line,
-        code: vuln.originalCode,
-        originalCode: vuln.originalCode,
-        fixedCode: vuln.fixedCode,
-        suggestion: vuln.suggestion,
-        confidence: vuln.confidence,
-        aiDetected: true
-      }));
-    }
-    
-    return [];
+    // Use the specialized extension AI for better vulnerability detection and fixes
+    const aiIssues = await detectVulnerabilitiesForExtension(content, fileType);
+    return aiIssues;
   } catch (error) {
     console.error('AI vulnerability detection failed:', error);
     return [];
@@ -1307,5 +1215,76 @@ export async function POST(req: NextRequest) {
     );
 
     throw error;
+  }
+}
+
+// New API endpoint specifically for VS Code extension
+export async function PUT(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { files } = body;
+
+    if (!files || !Array.isArray(files)) {
+      return NextResponse.json({ error: 'Files array is required' }, { status: 400 });
+    }
+
+    // Scan each file with specialized extension AI
+    const results = await Promise.all(files.map(async (file: any) => {
+      const { file: fileName, content, path, environment } = file;
+      const fileType = getFileType(fileName);
+      
+      let issues: ScanIssue[] = [];
+      
+      // Use specialized AI scanning for extension
+      try {
+        const aiIssues = await detectVulnerabilitiesForExtension(content, fileType);
+        issues = aiIssues;
+      } catch (error) {
+        console.error(`AI scanning failed for ${fileName}:`, error);
+      }
+
+      // Calculate summary
+      const summary = {
+        total: issues.length,
+        critical: issues.filter(i => i.severity === 'critical').length,
+        high: issues.filter(i => i.severity === 'high').length,
+        medium: issues.filter(i => i.severity === 'medium').length,
+        low: issues.filter(i => i.severity === 'low').length
+      };
+
+      return {
+        file: fileName,
+        issues,
+        summary
+      };
+    }));
+
+    return NextResponse.json({ results });
+  } catch (error) {
+    console.error('Extension scan failed:', error);
+    return NextResponse.json({ error: 'Scan failed' }, { status: 500 });
+  }
+}
+
+// Helper function to get file type
+function getFileType(fileName: string): string {
+  const ext = fileName.split('.').pop()?.toLowerCase();
+  switch (ext) {
+    case 'js': return 'JavaScript';
+    case 'ts': return 'TypeScript';
+    case 'jsx': return 'React';
+    case 'tsx': return 'React';
+    case 'py': return 'Python';
+    case 'java': return 'Java';
+    case 'php': return 'PHP';
+    case 'rb': return 'Ruby';
+    case 'go': return 'Go';
+    case 'rs': return 'Rust';
+    case 'cpp': return 'C++';
+    case 'c': return 'C';
+    case 'cs': return 'C#';
+    case 'sol': return 'Solidity';
+    case 'html': return 'HTML';
+    default: return 'Unknown';
   }
 } 
