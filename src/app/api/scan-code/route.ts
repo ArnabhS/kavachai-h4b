@@ -1228,7 +1228,12 @@ export async function PUT(req: NextRequest) {
     }
 
     // Scan each file with specialized extension AI
-    const results = await Promise.all(files.map(async (file: any) => {
+    interface ExtensionFile {
+      file: string;
+      content: string;
+    }
+
+    const results = await Promise.all(files.map(async (file: ExtensionFile) => {
       const { file: fileName, content } = file;
       const fileType = getFileType(fileName);
       

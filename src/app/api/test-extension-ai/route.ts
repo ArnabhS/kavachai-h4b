@@ -5,7 +5,8 @@ export async function GET(req: NextRequest) {
   try {
     // Test the extension AI
     await testExtensionAI();
-    
+    const body  = await req.json()
+    console.log(body)
     // Get rate limit info
     const rateLimitInfo = getExtensionRateLimitInfo();
     
@@ -18,7 +19,7 @@ export async function GET(req: NextRequest) {
     console.error('Extension AI test failed:', error);
     return NextResponse.json({ 
       error: 'Test failed', 
-      details: error.message 
+      details: error instanceof Error ? error.message : String(error)
     }, { status: 500 });
   }
 }
@@ -52,7 +53,7 @@ export async function POST(req: NextRequest) {
     console.error('Extension AI fix generation failed:', error);
     return NextResponse.json({ 
       error: 'Fix generation failed', 
-      details: error.message 
+      details: error instanceof Error ? error.message : String(error)
     }, { status: 500 });
   }
 } 
